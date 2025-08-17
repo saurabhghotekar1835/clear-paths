@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Paths - Clean Air Routes</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+             overflow: hidden;
+         }
+         
+        #map {
+            height: 100vh;
+            width: 100vw;
+            z-index: 1;
+        }
+        
+        /* Google Maps style search container */
+        .search-container {
+             position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .search-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            overflow: visible;
+             position: relative;
+        }
+        
+        .search-card:hover {
+            box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        }
+        
+
+        
+        .search-input {
+            border: none;
+            padding: 13px 20px 13px 40px;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+            background: transparent;
+            color: #333;
+            transition: all 0.2s ease;
+        }
+        
+        .search-input:focus {
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+        
+        .search-input::placeholder {
+            color: #999;
+        }
+        
+        .search-divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 0 20px;
+        }
+        
+        .search-divider-vertical {
+            width: 1px;
+            background: #e0e0e0;
+            margin: 8px 0;
+        }
+        
+        .to-indicator {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .search-result-item {
+            padding: 16px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-result-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            border-radius: 50%;
+            background: #4285f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .search-result-content {
+            flex: 1;
+        }
+        
+        .search-result-main {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .search-result-detail {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        /* Route Info Panel */
+        .route-info-panel {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        /* Controls */
+        .controls-container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+        }
+        
+        .control-btn {
+            background: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.2s ease;
+             display: flex;
+             align-items: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+        }
+        
+        .control-btn.primary {
+            background: #34a853;
+            color: white;
+        }
+        
+        .control-btn.primary:hover {
+            background: #2d8a47;
+        }
+        
+        .control-btn.secondary {
+            background: #4285f4;
+            color: white;
+        }
+        
+        .control-btn.secondary:hover {
+            background: #3367d6;
+        }
+        
+        /* Time slot selector */
+        .time-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+
+        
+        .time-select {
+            background: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            cursor: pointer;
+            outline: none;
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285f4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        /* Route info panel */
+        .route-info {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        /* Station data panel */
+        .station-info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            max-width: 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+        
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-size: 12px;
+        }
+        
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+        
+                 .legend-text {
+            color: #666;
+        }
+        
+        .route-info h5 {
+            margin: 0 0 12px 0;
+            color: #333;
+            font-size: 16px;
+             font-weight: 600;
+        }
+        
+        .route-info p {
+            margin: 6px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .close-btn {
+             position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+             display: flex;
+             align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover {
+            color: #333;
+        }
+        
+        /* Selected location indicators */
+        .location-indicator {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            background: #34a853;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            line-height: 1;
+             text-align: center;
+         }
+         
+        .location-indicator::before {
+            content: 'A';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            line-height: 1;
+        }
+        
+        .location-indicator.end {
+            background: #ea4335;
+        }
+        
+        .location-indicator.end::before {
+            content: 'B';
+             display: flex;
+             align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            line-height: 1;
+        }
+        
+        /* Zoom controls positioning */
+        .leaflet-control-zoom {
+            top: 20px !important;
+            left: 20px !important;
+            right: auto !important;
+            bottom: auto !important;
+        }
+        
+        /* Station hover tooltip styling */
+        .station-hover-tooltip {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid #ddd !important;
+            border-radius: 6px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            padding: 4px 8px !important;
+        }
+        
+        .station-hover-tooltip .leaflet-tooltip-content {
+            margin: 0 !important;
+            line-height: 1.4 !important;
+        }
+        
+        .station-selected {
+            background: rgba(255, 255, 255, 1.0) !important;
+            border: 2px solid #4285f4 !important;
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3) !important;
+        }
+        
+        .route-info-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+        
+        .route-info-overlay {
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        
+        .reload-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(66, 133, 244, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 10000;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        /* Hide static route info panel on mobile devices */
+        @media (max-width: 767px) {
+            .route-info-panel {
+                display: none !important;
+            }
+            
+            /* Hide clear button on mobile devices */
+            #clearBtn {
+                display: none !important;
+            }
+            
+            /* Move zoom buttons slightly lower and right on mobile to avoid overlap with search fields */
+            .leaflet-control-zoom {
+                top: 80px !important;
+                left: 10px !important;
+            }
+            
+
+        }
+        
+
+        
+        /* Responsive */
+        @media (max-width: 767px) {
+            .search-container {
+                left: 10px;
+                right: 10px;
+                top: 10px;
+                max-width: none;
+            }
+            
+            /* Mobile: Move time selector above buttons, centered */
+            .time-container {
+                position: absolute;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                right: auto;
+                top: auto;
+            }
+            
+            .time-select {
+                background: white;
+                border: none;
+                border-radius: 20px;
+                padding: 8px 16px;
+                font-size: 12px;
+                font-weight: 500;
+                color: #333;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+                cursor: pointer;
+                outline: none;
+                min-width: 100px;
+                text-align: center;
+                transition: all 0.2s ease;
+            }
+            
+            .time-select:hover {
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                transform: translateY(-1px);
+            }
+            
+            .controls-container {
+                bottom: 20px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .route-info {
+                left: 10px;
+                right: 10px;
+                bottom: 100px;
+            }
+            
+            .station-info {
+                bottom: 10px;
+                right: 10px;
+                width: 300px;
+                max-width: calc(100vw - 40px);
+            }
+            
+            .legend {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                font-size: 10px;
+            }
+            
+            .legend-title {
+                grid-column: 1 / -1;
+                text-align: center;
+                margin-bottom: 8px;
+            }
+        }
+        
+        /* Route info tooltip */
+        .route-info-tooltip {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid #ddd !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            min-width: 140px !important;
+        }
+        
+        .route-info-tooltip .leaflet-tooltip-content {
+            margin: 8px 12px !important;
+            line-height: 1.4 !important;
+         }
+    </style>
+</head>
+<body>
+    <!-- Map -->
+    <div id="map"></div>
+    
+    <!-- Search Container -->
+    <div class="search-container">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <!-- Start Point Box -->
+            <div class="search-card" style="flex: 1;">
+                <div style="position: relative;">
+                    <div class="location-indicator" id="startIndicator" style="display: none;"></div>
+                    <input type="text" class="search-input" id="startAddress" placeholder="Choose starting point">
+                    <div class="search-results" id="startAddressResults"></div>
+                 </div>
+            </div>
+            
+            <!-- To Indicator -->
+            <div class="to-indicator">To</div>
+            
+            <!-- End Point Box -->
+            <div class="search-card" style="flex: 1;">
+                <div style="position: relative;">
+                    <div class="location-indicator end" id="endIndicator" style="display: none;"></div>
+                    <input type="text" class="search-input" id="endAddress" placeholder="Choose destination">
+                    <div class="search-results" id="endAddressResults"></div>
+                            </div>
+                        </div>
+                            </div>
+                        </div>
+                    
+    <!-- Time Selector -->
+    <div class="time-container">
+        <select class="time-select" id="timeSlot">
+            <option value="">Current Time</option>
+            <option value="00:00-02:59">12-3 AM</option>
+            <option value="03:00-05:59">3-6 AM</option>
+            <option value="06:00-08:59">6-9 AM</option>
+            <option value="09:00-11:59">9 AM-12 PM</option>
+            <option value="12:00-14:59">12-3 PM</option>
+            <option value="15:00-17:59">3-6 PM</option>
+            <option value="18:00-20:59">6-9 PM</option>
+            <option value="21:00-23:59">9 PM-12 AM</option>
+        </select>
+                    </div>
+                    
+    <!-- Controls -->
+    <!-- Route Info Panel -->
+    <div class="route-info-panel" id="routeInfoPanel" style="display: none;">
+        <div id="routeInfoContent"></div>
+                    </div>
+                    
+    <div class="controls-container">
+        <button class="control-btn primary" id="findRouteBtn">
+            🌱 Clean Route
+                             </button>
+        <button class="control-btn secondary" id="findDistanceRouteBtn">
+            📏 Fast Route
+                             </button>
+        <button class="control-btn" id="clearBtn">
+            🗑️ Clear
+                              </button>
+                          </div>
+    
+
+                
+    <!-- Station Info Panel -->
+    <div class="station-info" id="stationInfo">
+        <button class="close-btn" onclick="hideStationData()">×</button>
+        <div id="stationData"></div>
+                 </div>
+                
+                
+                
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Finding clean route...</div>
+                 </div>
+                
+    <!-- Hidden coordinate inputs for backend compatibility -->
+    <input type="hidden" id="startLat">
+    <input type="hidden" id="startLon">
+    <input type="hidden" id="endLat">
+    <input type="hidden" id="endLon">
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Global variables
+        let map;
+        let startMarker = null;
+        let endMarker = null;
+        let optimalRouteLine = null;
+        let distanceRouteLine = null;
+        let stationMarkers = [];
+        let roadSegments = [];
+        let isSelectingStart = false;
+        let isSelectingEnd = false;
+        let mapClickEnabled = false;
+        let routePath = null;
+        let searchTimeout;
+        let selectedStartLocation = null;
+        let selectedEndLocation = null;
+        
+        // Initialize map
+        function initMap() {
+            map = L.map('map', {
+                zoomControl: false
+            }).setView([28.4595, 77.0266], 12);
+            
+            // Add zoom control to top left
+            L.control.zoom({
+                position: 'topleft'
+            }).addTo(map);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Setup map click handlers
+            setupMapClickHandlers();
+            
+            // Load station markers with current device time
+            const initialTimeSlot = getCurrentTimeSlotClient();
+            console.log(`Initial page load - using time slot: ${initialTimeSlot}`);
+            loadStationMarkers(initialTimeSlot);
+        }
+        
+
+
+        // Address Search Functionality
+        function setupAddressSearch() {
+            const startAddressInput = document.getElementById('startAddress');
+            const endAddressInput = document.getElementById('endAddress');
+            
+            if (!startAddressInput || !endAddressInput) {
+                console.error('Address input elements not found!');
+                return;
+            }
+            
+            // Setup search for start address
+            startAddressInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                if (query.length < 3) {
+                    hideSearchResults('startAddressResults');
+                    document.getElementById('startIndicator').style.display = 'none';
+                    return;
+                }
+                
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchAddress(query, 'startAddressResults', 'start');
+                }, 300);
+            });
+            
+            // Setup search for end address
+            endAddressInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                if (query.length < 3) {
+                    hideSearchResults('endAddressResults');
+                    document.getElementById('endIndicator').style.display = 'none';
+                    return;
+                }
+                
+
+                
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchAddress(query, 'endAddressResults', 'end');
+                }, 300);
+            });
+            
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-card')) {
+                    hideSearchResults('startAddressResults');
+                    hideSearchResults('endAddressResults');
+                }
+            });
+        }
+        
+        async function searchAddress(query, resultsElementId, type) {
+            try {
+                const resultsContainer = document.getElementById(resultsElementId);
+                if (!resultsContainer) {
+                    console.error('Results container not found:', resultsElementId);
+                return;
+            }
+            
+                // Try multiple search strategies for better results
+                let results = [];
+                
+                // Strategy 1: Search as-is first (for complete addresses)
+                const url1 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=in`;
+                const response1 = await fetch(url1);
+                const results1 = await response1.json();
+                
+                // Filter results to Gurugram area
+                const filteredResults1 = results1.filter(result => {
+                    const lat = parseFloat(result.lat);
+                    const lon = parseFloat(result.lon);
+                    return lat >= 28.3 && lat <= 28.6 && lon >= 76.8 && lon <= 77.2;
+                });
+                
+                results = filteredResults1;
+                
+                // Strategy 2: If no results, try with Gurugram context
+                if (results.length === 0) {
+                    const searchQuery = query.toLowerCase().includes('gurugram') || query.toLowerCase().includes('gurgaon') 
+                        ? query 
+                        : `${query}, Gurugram, Haryana, India`;
+                    
+                    const url2 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1&countrycodes=in`;
+                    const response2 = await fetch(url2);
+                    const results2 = await response2.json();
+                    
+                    results = results2.filter(result => {
+                        const lat = parseFloat(result.lat);
+                        const lon = parseFloat(result.lon);
+                        return lat >= 28.3 && lat <= 28.6 && lon >= 76.8 && lon <= 77.2;
+                    });
+                }
+                
+                showSearchResults(results, resultsElementId, type);
+            } catch (error) {
+                console.error('Search error:', error);
+                showSearchResults([], resultsElementId, type);
+            }
+        }
+        
+        function showSearchResults(results, resultsElementId, type) {
+            const resultsContainer = document.getElementById(resultsElementId);
+            if (!resultsContainer) {
+                console.error('Results container not found:', resultsElementId);
+                return;
+            }
+            resultsContainer.innerHTML = '';
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="search-result-item">
+                        <div class="search-result-icon">?</div>
+                        <div class="search-result-content">
+                            <div class="search-result-main">No results found</div>
+                            <div class="search-result-detail">Try searching for area names like "Sushant Lok" or "Cyber City"</div>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.style.display = 'block';
+                return;
+            }
+            
+            results.forEach((result, index) => {
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                
+                const displayName = result.display_name.split(',').slice(0, 2).join(', ');
+                const lat = parseFloat(result.lat);
+                const lon = parseFloat(result.lon);
+                
+                item.innerHTML = `
+                    <div class="search-result-icon">${type === 'start' ? 'A' : 'B'}</div>
+                    <div class="search-result-content">
+                        <div class="search-result-main">${displayName}</div>
+                        <div class="search-result-detail">${lat.toFixed(4)}, ${lon.toFixed(4)}</div>
+                    </div>
+                `;
+                
+                item.addEventListener('click', function() {
+                    selectLocation(result, type);
+                    hideSearchResults(resultsElementId);
+                });
+                
+                resultsContainer.appendChild(item);
+            });
+            
+            resultsContainer.style.display = 'block';
+        }
+        
+        function hideSearchResults(resultsElementId) {
+            const resultsContainer = document.getElementById(resultsElementId);
+            resultsContainer.style.display = 'none';
+        }
+        
+        function selectLocation(location, type) {
+            const lat = parseFloat(location.lat);
+            const lon = parseFloat(location.lon);
+            const displayName = location.display_name.split(',').slice(0, 2).join(', ');
+            
+            if (type === 'start') {
+                selectedStartLocation = { lat, lon, name: displayName };
+                document.getElementById('startAddress').value = displayName;
+                document.getElementById('startLat').value = lat.toFixed(6);
+                document.getElementById('startLon').value = lon.toFixed(6);
+                document.getElementById('startIndicator').style.display = 'block';
+                
+                // Update start marker
+                if (startMarker) map.removeLayer(startMarker);
+                startMarker = L.marker([lat, lon], {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `
+                            <div style="
+                                background-color: #34a853; 
+                                width: 20px; 
+                                height: 20px; 
+                                border-radius: 4px; 
+                                border: 3px solid white; 
+                                box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-weight: bold;
+                                font-size: 12px;
+                                font-family: Arial, sans-serif;
+                            ">A</div>
+                        `,
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13]
+                    })
+            }).addTo(map);
+                
+            } else if (type === 'end') {
+                selectedEndLocation = { lat, lon, name: displayName };
+                document.getElementById('endAddress').value = displayName;
+                document.getElementById('endLat').value = lat.toFixed(6);
+                document.getElementById('endLon').value = lon.toFixed(6);
+                document.getElementById('endIndicator').style.display = 'block';
+                
+                // Update end marker
+                if (endMarker) map.removeLayer(endMarker);
+                endMarker = L.marker([lat, lon], {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `
+                            <div style="
+                                background-color: #ea4335; 
+                                width: 20px; 
+                                height: 20px; 
+                                border-radius: 4px; 
+                                border: 3px solid white; 
+                                box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-weight: bold;
+                                font-size: 12px;
+                                font-family: Arial, sans-serif;
+                            ">B</div>
+                        `,
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13]
+                    })
+                }).addTo(map);
+            }
+            
+            // Auto-zoom to show both markers if both are set
+            if (startMarker && endMarker) {
+                const group = new L.featureGroup([startMarker, endMarker]);
+                map.fitBounds(group.getBounds().pad(0.1));
+                    } else {
+                map.setView([lat, lon], 14);
+            }
+        }
+        
+        function setupMapClickHandlers() {
+                        map.on('click', function(e) {
+                console.log('Map clicked!', {
+                    mapClickEnabled: mapClickEnabled,
+                    isSelectingStart: isSelectingStart,
+                    isSelectingEnd: isSelectingEnd,
+                    hasRoutes: !!(optimalRouteLine || distanceRouteLine)
+                });
+                
+                // Only handle clicks if we're actively selecting and no route is displayed
+                if (!mapClickEnabled || optimalRouteLine || distanceRouteLine) {
+                    console.log('Map click ignored - selection disabled or route displayed');
+                        return;
+                    }
+                    
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                
+                if (isSelectingStart) {
+                    document.getElementById('startLat').value = lat.toFixed(6);
+                    document.getElementById('startLon').value = lng.toFixed(6);
+                    document.getElementById('startAddress').value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    document.getElementById('startIndicator').style.display = 'block';
+                    
+                    if (startMarker) map.removeLayer(startMarker);
+                    startMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `
+                                <div style="
+                                    background-color: #34a853; 
+                                    width: 20px; 
+                                    height: 20px; 
+                                    border-radius: 4px; 
+                                    border: 3px solid white; 
+                                    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-weight: bold;
+                                    font-size: 12px;
+                                    font-family: Arial, sans-serif;
+                                ">A</div>
+                            `,
+                            iconSize: [26, 26],
+                            iconAnchor: [13, 13]
+                        })
+                    }).addTo(map);
+                    
+                    isSelectingStart = false;
+                    mapClickEnabled = false;
+                    map.getContainer().style.cursor = 'grab';
+                } else if (isSelectingEnd) {
+                    document.getElementById('endLat').value = lat.toFixed(6);
+                    document.getElementById('endLon').value = lng.toFixed(6);
+                    document.getElementById('endAddress').value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    document.getElementById('endIndicator').style.display = 'block';
+                    
+                    if (endMarker) map.removeLayer(endMarker);
+                    endMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `
+                                <div style="
+                                    background-color: #ea4335; 
+                                    width: 20px; 
+                                    height: 20px; 
+                                    border-radius: 4px; 
+                                    border: 3px solid white; 
+                                    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-weight: bold;
+                                    font-size: 12px;
+                                    font-family: Arial, sans-serif;
+                                ">B</div>
+                            `,
+                            iconSize: [26, 26],
+                            iconAnchor: [13, 13]
+                        })
+                    }).addTo(map);
+                    
+                    isSelectingEnd = false;
+                    mapClickEnabled = false;
+                    map.getContainer().style.cursor = 'grab';
+                }
+            });
+        }
+        
+        // Route finding functionality
+        function getValidCoordinates() {
+            const startLat = document.getElementById('startLat').value;
+            const startLon = document.getElementById('startLon').value;
+            const endLat = document.getElementById('endLat').value;
+            const endLon = document.getElementById('endLon').value;
+            
+            if (!startLat || !startLon || !endLat || !endLon) {
+                alert('Please select both start and end locations');
+                return null;
+            }
+            
+            return {
+                startLat: parseFloat(startLat),
+                startLon: parseFloat(startLon),
+                endLat: parseFloat(endLat),
+                endLon: parseFloat(endLon)
+            };
+        }
+        
+        async function findRoute(startLat, startLon, endLat, endLon, routeType) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+            
+            try {
+                const selectedTimeSlot = document.getElementById('timeSlot').value;
+                
+                // Determine time slot based on selection
+                let endpoint, requestBody, timeSlotToUse;
+                
+                if (!selectedTimeSlot) {
+                    // Use client-side time detection for "Current Time"
+                    timeSlotToUse = getCurrentTimeSlotClient();
+                } else {
+                    timeSlotToUse = selectedTimeSlot;
+                }
+                
+                // Always use regular endpoints with determined time slot
+                endpoint = routeType === 'optimal' ? '/route' : '/route-distance';
+                requestBody = {
+                    start_lat: startLat,
+                    start_lon: startLon,
+                    end_lat: endLat,
+                    end_lon: endLon,
+                    time_slot: timeSlotToUse
+                };
+                
+                console.log(`Route calculation - using time slot: ${timeSlotToUse}`);
+                console.log(`Route endpoint: ${endpoint}`);
+                console.log(`Request body:`, requestBody);
+                
+                const response = await fetch(`http://192.168.1.13:8000${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayRoute(data, routeType);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                let errorMessage = error.message;
+                
+                // Provide helpful suggestions for common errors
+                if (errorMessage.includes('No path found')) {
+                    errorMessage += '\n\n💡 Tips:\n' +
+                        '• Try locations closer to main roads\n' +
+                        '• Use search suggestions instead of map clicks\n' +
+                        '• Select points within Gurugram city area\n' +
+                        '• Avoid rural areas or locations far from roads';
+                }
+                
+                alert('Route Error:\n' + errorMessage);
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+        
+        function displayRoute(data, routeType) {
+            // Remove existing route and border
+            if (routeType === 'optimal') {
+            if (optimalRouteLine) {
+                map.removeLayer(optimalRouteLine);
+                optimalRouteLine = null;
+            }
+                if (window.optimalBorderLine) {
+                    map.removeLayer(window.optimalBorderLine);
+                    window.optimalBorderLine = null;
+                }
+            } else if (routeType === 'distance') {
+            if (distanceRouteLine) {
+                map.removeLayer(distanceRouteLine);
+                distanceRouteLine = null;
+                }
+                if (window.distanceBorderLine) {
+                    map.removeLayer(window.distanceBorderLine);
+                    window.distanceBorderLine = null;
+                }
+            }
+            
+            // Validate route data
+            if (!data.route || !Array.isArray(data.route) || data.route.length === 0) {
+                console.error('Invalid route data:', data);
+                return;
+            }
+            
+            // Draw new route - handle coordinate format
+            const routeCoords = data.route
+                .filter(point => {
+                    // Handle both [lon, lat] arrays and {lat, lon} objects
+                    if (Array.isArray(point) && point.length >= 2) {
+                        return !isNaN(point[0]) && !isNaN(point[1]);
+                    } else if (point && point.lat && point.lon) {
+                        return !isNaN(point.lat) && !isNaN(point.lon);
+                    }
+                    return false;
+                })
+                .map(point => {
+                    // Convert to [lat, lon] format for Leaflet
+                    if (Array.isArray(point)) {
+                        return [point[1], point[0]]; // Convert [lon, lat] to [lat, lon]
+                    } else {
+                        return [point.lat, point.lon];
+                    }
+                });
+            
+            if (routeCoords.length === 0) {
+                console.error('No valid coordinates in route');
+                return;
+            }
+            
+            const routeColor = routeType === 'optimal' ? '#34a853' : '#4285f4';
+            
+                        try {
+                // Create offset coordinates for side-by-side display when both routes exist
+                let offsetCoords = routeCoords;
+                const offsetDistance = 0.00005; // Very small offset in degrees (~5.5 meters) for very close routes
+                
+                if (routeType === 'distance' && optimalRouteLine) {
+                    // Offset the fast route slightly to the right
+                    offsetCoords = routeCoords.map(coord => [
+                        coord[0], // lat stays same
+                        coord[1] + offsetDistance // lon offset to right
+                    ]);
+                } else if (routeType === 'optimal' && distanceRouteLine) {
+                    // Offset the clean route slightly to the left
+                    offsetCoords = routeCoords.map(coord => [
+                        coord[0], // lat stays same
+                        coord[1] - offsetDistance // lon offset to left
+                    ]);
+                }
+                
+                // Create white border for better separation at all zoom levels
+                const borderStyle = {
+                    color: 'white',
+                    weight: 6,
+                    opacity: 1.0
+                };
+                
+                // Main route style
+                const routeStyle = {
+                    color: routeColor,
+                    weight: 4,
+                    opacity: 0.9
+                };
+                
+                // Draw white border first, then colored route on top
+                const borderLine = L.polyline(offsetCoords, borderStyle).addTo(map);
+                const routeLine = L.polyline(offsetCoords, routeStyle).addTo(map);
+                
+                // Add route info popup to the route line (only for mobile/small screens)
+                const distance = data.total_distance_km || data.total_distance || 0;
+                const pollution = data.average_aqi || data.total_pollution || 0;
+                const routeTypeLabel = routeType === 'optimal' ? 'Clean Route' : 'Fast Route';
+                
+                // Check if screen is mobile/small (< 768px width)
+                const isMobile = window.innerWidth < 768;
+                
+                if (isMobile) {
+                    // Create a permanent tooltip that's always visible on mobile
+                    // Position boxes at different points to avoid overlap when both routes are shown
+                    let positionRatio;
+                    if (routeType === 'optimal' && distanceRouteLine) {
+                        // Clean route: position at 1/3 of the route
+                        positionRatio = 0.33;
+                    } else if (routeType === 'distance' && optimalRouteLine) {
+                        // Fast route: position at 2/3 of the route
+                        positionRatio = 0.67;
+                    } else {
+                        // Single route: position at middle
+                        positionRatio = 0.5;
+                    }
+                    
+                    const routePoint = Math.floor(offsetCoords.length * positionRatio);
+                    const routeInfoLatLng = offsetCoords[routePoint];
+                    
+                    // Create a custom marker for route info display
+                    const routeInfoIcon = L.divIcon({
+                        className: 'route-info-marker',
+                        html: `
+                            <div class="route-info-overlay" style="
+                                background: rgba(255, 255, 255, 0.9);
+                                border: 1px solid ${routeColor};
+                                border-radius: 6px;
+                                padding: 4px 8px;
+                                box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+                                font-family: 'Segoe UI', sans-serif;
+                                min-width: 80px;
+                                text-align: center;
+                                position: relative;
+                            ">
+                                <div style="font-size: 10px; font-weight: 600; color: ${routeColor}; margin-bottom: 2px;">
+                                    ${distance.toFixed(1)}km
+                                </div>
+                                <div style="font-size: 9px; font-weight: 500; color: #555;">
+                                    AQI: ${pollution.toFixed(0)}
+                                </div>
+                            </div>
+                        `,
+                        iconSize: [80, 35],
+                        iconAnchor: [40, 17]
+                    });
+                    
+                    const routeInfoMarker = L.marker(routeInfoLatLng, { icon: routeInfoIcon }).addTo(map);
+                    
+                    // Store marker for cleanup
+                    if (routeType === 'optimal') {
+                        window.optimalRouteInfoMarker = routeInfoMarker;
+                    } else {
+                        window.distanceRouteInfoMarker = routeInfoMarker;
+                    }
+                }
+                
+                // Update the static route info panel (only for desktop/larger screens)
+                if (!isMobile) {
+                    updateRouteInfoPanel(routeType, distance, pollution, routeColor);
+                }
+                
+                if (routeType === 'optimal') {
+                    optimalRouteLine = routeLine;
+                    window.optimalBorderLine = borderLine;
+                 } else {
+                    distanceRouteLine = routeLine;
+                    window.distanceBorderLine = borderLine;
+                }
+                
+                // Fit map to route
+                map.fitBounds(routeLine.getBounds(), { padding: [20, 20] });
+                
+                // Disable map clicking when route is displayed
+                isSelectingStart = false;
+                isSelectingEnd = false;
+                mapClickEnabled = false;
+                if (map && map.getContainer()) {
+                    map.getContainer().style.cursor = 'grab';
+                }
+                
+             } catch (error) {
+                console.error('Error creating polyline:', error);
+            }
+        }
+        
+        function showRouteInfo(data, routeType) {
+            const routeInfo = document.getElementById('routeInfo');
+            const routeTitle = document.getElementById('routeTitle');
+            const routeDetails = document.getElementById('routeDetails');
+            
+            const title = routeType === 'optimal' ? '🌱 Clean Air Route' : '📏 Fastest Route';
+            const color = routeType === 'optimal' ? '#34a853' : '#4285f4';
+            
+            routeTitle.textContent = title;
+            routeTitle.style.color = color;
+            
+            // Handle different property names and undefined values
+            const distance = data.total_distance_km || data.total_distance || 0;
+            const pollution = data.average_aqi || data.total_pollution || 0;
+            const timeSlot = data.time_slot || 'Current';
+            const routePoints = data.route ? data.route.length : 0;
+            
+            routeDetails.innerHTML = `
+                <p><strong>Distance:</strong> ${distance.toFixed(2)} km</p>
+                <p><strong>Average AQI:</strong> ${pollution.toFixed(0)} (${getAQICategory(pollution)})</p>
+                <p><strong>Time Slot:</strong> ${timeSlot}</p>
+                <p><strong>Route Points:</strong> ${routePoints}</p>
+            `;
+            
+            routeInfo.style.display = 'block';
+        }
+        
+        function hideRouteInfo() {
+            document.getElementById('routeInfo').style.display = 'none';
+        }
+        
+        function updateRouteInfoPanel(routeType, distance, pollution, routeColor) {
+            const panel = document.getElementById('routeInfoPanel');
+            const content = document.getElementById('routeInfoContent');
+            
+            const routeName = routeType === 'optimal' ? 'Clean Route' : 'Fast Route';
+            const icon = routeType === 'optimal' ? '🌱' : '📏';
+            
+            // Store route data
+            if (!window.routeData) window.routeData = {};
+            window.routeData[routeType] = { distance, pollution, routeColor, routeName, icon };
+            
+            // Build HTML for all available routes
+            let html = '';
+            if (window.routeData.optimal) {
+                const data = window.routeData.optimal;
+                html += `
+                    <div style="margin-bottom: 12px; padding: 8px; border-left: 4px solid ${data.routeColor};">
+                        <div style="font-weight: bold; color: ${data.routeColor}; margin-bottom: 4px;">
+                            ${data.icon} ${data.routeName}
+                        </div>
+                        <div style="font-size: 14px; color: #666;">
+                            Distance: ${data.distance.toFixed(1)}km<br>
+                            Average AQI: ${data.pollution.toFixed(0)}
+                        </div>
+                    </div>
+                `;
+            }
+            if (window.routeData.distance) {
+                const data = window.routeData.distance;
+                html += `
+                    <div style="margin-bottom: 12px; padding: 8px; border-left: 4px solid ${data.routeColor};">
+                        <div style="font-weight: bold; color: ${data.routeColor}; margin-bottom: 4px;">
+                            ${data.icon} ${data.routeName}
+                        </div>
+                        <div style="font-size: 14px; color: #666;">
+                            Distance: ${data.distance.toFixed(1)}km<br>
+                            Average AQI: ${data.pollution.toFixed(0)}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = html;
+            panel.style.display = 'block';
+        }
+
+        function clearAll() {
+            // Remove markers
+            if (startMarker) {
+                map.removeLayer(startMarker);
+                startMarker = null;
+            }
+            if (endMarker) {
+                map.removeLayer(endMarker);
+                endMarker = null;
+            }
+            
+            // Remove routes, borders and info markers
+            if (optimalRouteLine) {
+                map.removeLayer(optimalRouteLine);
+                optimalRouteLine = null;
+            }
+            if (window.optimalBorderLine) {
+                map.removeLayer(window.optimalBorderLine);
+                window.optimalBorderLine = null;
+            }
+            if (distanceRouteLine) {
+                map.removeLayer(distanceRouteLine);
+                distanceRouteLine = null;
+            }
+            if (window.distanceBorderLine) {
+                map.removeLayer(window.distanceBorderLine);
+                window.distanceBorderLine = null;
+            }
+            // Remove mobile route info markers
+            if (window.optimalRouteInfoMarker) {
+                map.removeLayer(window.optimalRouteInfoMarker);
+                window.optimalRouteInfoMarker = null;
+            }
+            if (window.distanceRouteInfoMarker) {
+                map.removeLayer(window.distanceRouteInfoMarker);
+                window.distanceRouteInfoMarker = null;
+            }
+
+            
+            // Clear inputs
+            document.getElementById('startAddress').value = '';
+            document.getElementById('endAddress').value = '';
+            document.getElementById('startLat').value = '';
+            document.getElementById('startLon').value = '';
+            document.getElementById('endLat').value = '';
+            document.getElementById('endLon').value = '';
+            
+            // Hide indicators
+            document.getElementById('startIndicator').style.display = 'none';
+            document.getElementById('endIndicator').style.display = 'none';
+            
+            // Hide search results, route info, and station info
+            hideSearchResults('startAddressResults');
+            hideSearchResults('endAddressResults');
+            hideRouteInfo();
+            hideStationData();
+            
+            // Hide route info panel
+            document.getElementById('routeInfoPanel').style.display = 'none';
+            window.routeData = {};
+            
+            // Reset selection state
+            isSelectingStart = false;
+            isSelectingEnd = false;
+            mapClickEnabled = false;
+            if (map && map.getContainer()) {
+                map.getContainer().style.cursor = 'grab';
+            }
+        }
+        
+        function getAQICategory(aqi) {
+            if (aqi <= 50) return 'Good';
+            if (aqi <= 100) return 'Satisfactory';
+            if (aqi <= 200) return 'Moderate';
+            if (aqi <= 300) return 'Poor';
+            if (aqi <= 400) return 'Very Poor';
+            return 'Severe';
+        }
+        
+        async function loadStationMarkers(timeSlot = null) {
+            try {
+                // Add cache-busting timestamp
+                const timestamp = new Date().getTime();
+                const baseUrl = timeSlot 
+                    ? `http://192.168.1.13:8000/stations?time_slot=${encodeURIComponent(timeSlot)}`
+                    : 'http://192.168.1.13:8000/stations';
+                const url = timeSlot 
+                    ? `${baseUrl}&_t=${timestamp}`
+                    : `${baseUrl}?_t=${timestamp}`;
+                
+                console.log(`Loading station data with timeSlot: ${timeSlot}`);
+                console.log(`Device local time: ${new Date().toLocaleString()}`);
+                console.log(`API URL: ${url}`);
+                
+                const response = await fetch(url, {
+                    cache: 'no-cache',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`Received station data:`, data);
+                    console.log(`Number of stations: ${data.stations ? data.stations.length : 0}`);
+                    if (data.stations && data.stations.length > 0) {
+                        console.log(`Sample station data:`, data.stations[0]);
+                    }
+                    drawStationMarkers(data.stations);
+                }
+            } catch (error) {
+                console.error('Could not load station markers:', error);
+            }
+        }
+        
+        function drawStationMarkers(stations) {
+            // Remove existing station markers
+            stationMarkers.forEach(marker => {
+                if (map.hasLayer(marker)) {
+                    map.removeLayer(marker);
+                }
+            });
+            stationMarkers = [];
+            
+            stations.forEach(station => {
+                // Skip stations with invalid coordinates
+                if (!station.latitude || !station.longitude || 
+                    isNaN(station.latitude) || isNaN(station.longitude)) {
+                    return;
+                }
+                
+                    const aqi = station.aqi || 0;
+                const color = getAQIColor(aqi);
+                
+                const marker = L.circleMarker([station.latitude, station.longitude], {
+                    radius: 6,
+                    fillColor: color,
+                    color: 'white',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+                
+                // Add hover tooltip with just name and AQI
+                marker.bindTooltip(`
+                    <div style="font-family: 'Segoe UI', sans-serif; font-size: 12px; text-align: center;">
+                        <strong>${station.station_name}</strong><br>
+                        <span style="font-weight: bold;">AQI: ${aqi}</span>
+                    </div>
+                `, {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -10],
+                    className: 'station-hover-tooltip'
+                });
+                
+                // Add click handler to show station data and persistent tooltip
+                    marker.on('click', function() {
+                    // Close any existing persistent tooltips
+                    if (window.activeStationMarker && window.activeStationMarker !== marker) {
+                        window.activeStationMarker.closeTooltip();
+                        window.activeStationMarker.unbindTooltip();
+                        // Re-bind hover tooltip
+                        window.activeStationMarker.bindTooltip(`
+                            <div style="font-family: 'Segoe UI', sans-serif; font-size: 12px; text-align: center;">
+                                <strong>${window.activeStationData.station_name}</strong><br>
+                                <span style="font-weight: bold;">AQI: ${window.activeStationData.aqi || 0}</span>
+                            </div>
+                        `, {
+                            permanent: false,
+                            direction: 'top',
+                            offset: [0, -10],
+                            className: 'station-hover-tooltip'
+                        });
+                    }
+                    
+                    // Make this tooltip permanent (highlighted)
+                    marker.unbindTooltip();
+                    marker.bindTooltip(`
+                        <div style="font-family: 'Segoe UI', sans-serif; font-size: 12px; text-align: center;">
+                        <strong>${station.station_name}</strong><br>
+                            <span style="font-weight: bold;">AQI: ${aqi}</span>
+                        </div>
+                    `, {
+                        permanent: true,
+                        direction: 'top',
+                        offset: [0, -10],
+                        className: 'station-hover-tooltip station-selected'
+                    }).openTooltip();
+                    
+                    // Store active marker and data for cleanup
+                    window.activeStationMarker = marker;
+                    window.activeStationData = station;
+                    
+                    showStationData(station);
+                });
+                    
+                    stationMarkers.push(marker);
+            });
+        }
+        
+        function getAQIColor(aqi) {
+            if (aqi <= 50) return '#00E400';
+            if (aqi <= 100) return '#FFFF00';
+            if (aqi <= 200) return '#FF7E00';
+            if (aqi <= 300) return '#FF0000';
+            if (aqi <= 400) return '#8F3F97';
+            return '#7E0023';
+        }
+        
+        async function showStationData(station) {
+            try {
+                const stationInfo = document.getElementById('stationInfo');
+                const stationData = document.getElementById('stationData');
+                
+                // Determine the actual time slot being used
+                const selectedTimeSlot = document.getElementById('timeSlot').value;
+                const actualTimeSlot = selectedTimeSlot || getCurrentTimeSlotClient();
+                
+                const url = actualTimeSlot 
+                    ? `http://192.168.1.13:8000/stations?time_slot=${encodeURIComponent(actualTimeSlot)}`
+                    : 'http://192.168.1.13:8000/stations';
+                    
+                console.log(`Station panel - using time slot: ${actualTimeSlot}`);
+                    
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    const currentStation = data.stations.find(s => s.station_name === station.station_name);
+                    
+                    if (currentStation) {
+                        // Add the actual time slot info to the station data
+                        currentStation.actual_time_slot = actualTimeSlot;
+                        displayCurrentTimeSlotData(currentStation);
+                    } else {
+                        displayBasicStationData(station);
+                    }
+                } else {
+                    displayBasicStationData(station);
+                }
+                
+                stationInfo.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading station data:', error);
+                displayBasicStationData(station);
+                document.getElementById('stationInfo').style.display = 'block';
+            }
+        }
+        
+        function displayCurrentTimeSlotData(station) {
+            const stationData = document.getElementById('stationData');
+            const aqi = station.aqi || 0;
+            const category = getAQICategory(aqi);
+            const color = getAQIColor(aqi);
+            
+            // Determine text color based on background color (black for yellow, white for others)
+            const textColor = color === '#FFFF00' ? 'black' : 'white';
+            
+            stationData.innerHTML = `
+                <h6 style="margin-bottom: 15px; color: #333;">${station.station_name}</h6>
+                <div style="background: ${color}; color: ${textColor}; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; max-width: 100%; box-sizing: border-box;">
+                    <div style="font-size: 24px; font-weight: bold;">${aqi}</div>
+                    <div style="font-size: 14px; opacity: 0.9;">${category}</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 18px; font-weight: 600; color: #333;">${station.pm25?.toFixed(1) || 'N/A'}</div>
+                        <div style="font-size: 12px; color: #666;">PM2.5 µg/m³</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 18px; font-weight: 600; color: #333;">${station.pm10?.toFixed(1) || 'N/A'}</div>
+                        <div style="font-size: 12px; color: #666;">PM10 µg/m³</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 18px; font-weight: 600; color: #333;">${station.temperature?.toFixed(1) || 'N/A'}°C</div>
+                        <div style="font-size: 12px; color: #666;">Temperature</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 18px; font-weight: 600; color: #333;">${station.humidity?.toFixed(0) || 'N/A'}%</div>
+                        <div style="font-size: 12px; color: #666;">Humidity</div>
+                    </div>
+                </div>
+                <div style="font-size: 12px; color: #666; text-align: center;">
+                    Time: ${getTimeSlotLabel(station.actual_time_slot || 'Current')}<br>
+                    Location: ${station.latitude?.toFixed(4)}, ${station.longitude?.toFixed(4)}
+                </div>
+                
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                    <div onclick="toggleAQIScale()" style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <span>Air Quality Index Scale</span>
+                        <span id="aqiToggleIcon" style="font-size: 10px;">▼</span>
+                    </div>
+                    <div id="aqiScaleContent" style="display: none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <div style="width: 10px; height: 10px; background: #00E400; border-radius: 2px;"></div>
+                                <span>Good (0-50)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <div style="width: 10px; height: 10px; background: #FFFF00; border-radius: 2px;"></div>
+                                <span>Satisfactory (51-100)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <div style="width: 10px; height: 10px; background: #FF7E00; border-radius: 2px;"></div>
+                                <span>Moderate (101-200)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <div style="width: 10px; height: 10px; background: #FF0000; border-radius: 2px;"></div>
+                                <span>Poor (201-300)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <div style="width: 10px; height: 10px; background: #8F3F97; border-radius: 2px;"></div>
+                                <span>Very Poor (301-400)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <div style="width: 10px; height: 10px; background: #7E0023; border-radius: 2px;"></div>
+                                <span>Severe (>400)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+                        function displayBasicStationData(station) {
+            const stationData = document.getElementById('stationData');
+            const aqi = station.aqi || 0;
+            const category = getAQICategory(aqi);
+            const color = getAQIColor(aqi);
+            
+            // Determine text color based on background color (black for yellow, white for others)
+            const textColor = color === '#FFFF00' ? 'black' : 'white';
+            
+            stationData.innerHTML = `
+                <h6 style="margin-bottom: 15px; color: #333;">${station.station_name}</h6>
+                <div style="background: ${color}; color: ${textColor}; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; max-width: 100%; box-sizing: border-box;">
+                    <div style="font-size: 24px; font-weight: bold;">${aqi}</div>
+                    <div style="font-size: 14px; opacity: 0.9;">${category}</div>
+                    </div>
+                <div style="text-align: center; color: #666; font-size: 14px;">
+                    Click on time slot to see detailed data
+                </div>
+            `;
+        }
+        
+        function showReloadIndicator() {
+            let indicator = document.getElementById('reloadIndicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'reloadIndicator';
+                indicator.innerHTML = '↓ Release to reload';
+                indicator.className = 'reload-indicator';
+                document.body.appendChild(indicator);
+            }
+            indicator.style.display = 'block';
+        }
+        
+        function hideReloadIndicator() {
+            const indicator = document.getElementById('reloadIndicator');
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+        
+        function getCurrentTimeSlotClient() {
+            // Get current time from user's device (local timezone)
+            const now = new Date();
+            const hour = now.getHours();
+            
+            console.log(`Current device time: ${now.toLocaleString()}, Hour: ${hour}`);
+            
+            // Map hour to time slot (same logic as backend but using client time)
+            let timeSlot;
+            if (hour >= 0 && hour < 3) {
+                timeSlot = "00:00-02:59";
+            } else if (hour >= 3 && hour < 6) {
+                timeSlot = "03:00-05:59";
+            } else if (hour >= 6 && hour < 9) {
+                timeSlot = "06:00-08:59";
+            } else if (hour >= 9 && hour < 12) {
+                timeSlot = "09:00-11:59";
+            } else if (hour >= 12 && hour < 15) {
+                timeSlot = "12:00-14:59";
+            } else if (hour >= 15 && hour < 18) {
+                timeSlot = "15:00-17:59";
+            } else if (hour >= 18 && hour < 21) {
+                timeSlot = "18:00-20:59";
+            } else {
+                timeSlot = "21:00-23:59";
+            }
+            
+            console.log(`Selected time slot: ${timeSlot}`);
+            return timeSlot;
+        }
+        
+        function getTimeSlotLabel(timeSlot) {
+            // Convert time slot code to user-friendly label
+            const timeSlotLabels = {
+                "00:00-02:59": "12-3 AM",
+                "03:00-05:59": "3-6 AM", 
+                "06:00-08:59": "6-9 AM",
+                "09:00-11:59": "9 AM-12 PM",
+                "12:00-14:59": "12-3 PM",
+                "15:00-17:59": "3-6 PM",
+                "18:00-20:59": "6-9 PM",
+                "21:00-23:59": "9 PM-12 AM"
+            };
+            return timeSlotLabels[timeSlot] || timeSlot;
+        }
+        
+        function hideStationData() {
+            document.getElementById('stationInfo').style.display = 'none';
+            
+            // Clean up persistent tooltip highlighting
+            if (window.activeStationMarker && window.activeStationData) {
+                window.activeStationMarker.closeTooltip();
+                window.activeStationMarker.unbindTooltip();
+                
+                // Re-bind hover tooltip
+                const aqi = window.activeStationData.aqi || 0;
+                window.activeStationMarker.bindTooltip(`
+                    <div style="font-family: 'Segoe UI', sans-serif; font-size: 12px; text-align: center;">
+                        <strong>${window.activeStationData.station_name}</strong><br>
+                        <span style="font-weight: bold;">AQI: ${aqi}</span>
+                    </div>
+                `, {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -10],
+                    className: 'station-hover-tooltip'
+                });
+                
+                window.activeStationMarker = null;
+                window.activeStationData = null;
+            }
+        }
+
+        function toggleAQIScale() {
+            const content = document.getElementById('aqiScaleContent');
+            const icon = document.getElementById('aqiToggleIcon');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.innerHTML = '▲';
+            } else {
+                content.style.display = 'none';
+                icon.innerHTML = '▼';
+            }
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Test alert to verify JavaScript is working
+            console.log('JavaScript is working now!');
+            
+            initMap();
+            setupAddressSearch();
+            
+            // Button event listeners
+            document.getElementById('findRouteBtn').addEventListener('click', function() {
+                const coords = getValidCoordinates();
+                if (coords) {
+                    findRoute(coords.startLat, coords.startLon, coords.endLat, coords.endLon, 'optimal');
+                }
+            });
+            
+            document.getElementById('findDistanceRouteBtn').addEventListener('click', function() {
+                const coords = getValidCoordinates();
+                if (coords) {
+                    findRoute(coords.startLat, coords.startLon, coords.endLat, coords.endLon, 'distance');
+                }
+            });
+            
+            document.getElementById('clearBtn').addEventListener('click', clearAll);
+            
+
+            
+            // Add input field click listeners to enable map selection
+            document.getElementById('startAddress').addEventListener('click', function() {
+                console.log('Start address clicked - enabling map selection');
+                isSelectingStart = true;
+                isSelectingEnd = false;
+                mapClickEnabled = true;
+                map.getContainer().style.cursor = 'crosshair';
+            });
+            
+            document.getElementById('endAddress').addEventListener('click', function() {
+                console.log('End address clicked - enabling map selection');
+                isSelectingStart = false;
+                isSelectingEnd = true;
+                mapClickEnabled = true;
+                map.getContainer().style.cursor = 'crosshair';
+            });
+            
+            // Disable map selection when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#startAddress') && !e.target.closest('#endAddress') && !e.target.closest('#map')) {
+                    isSelectingStart = false;
+                    isSelectingEnd = false;
+                    mapClickEnabled = false;
+                    if (map && map.getContainer()) {
+                        map.getContainer().style.cursor = 'grab';
+                    }
+                }
+            });
+            
+            // Handle window resize to switch between mobile popups and desktop panels
+            window.addEventListener('resize', function() {
+                // If routes are currently displayed, refresh them with new responsive behavior
+                if (optimalRouteLine || distanceRouteLine) {
+                    const currentTimeSlot = document.getElementById('timeSlot').value;
+                    // Note: In a real implementation, you might want to store the route data
+                    // and re-call displayRoute, but for now this will work on next route request
+                }
+            });
+
+            // Add swipe-down to reload functionality for mobile
+            let touchStartY = 0;
+            let touchEndY = 0;
+            let isAtTop = false;
+            
+            // Track touch start
+            document.addEventListener('touchstart', function(e) {
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+                
+                // Check if touch is in the search container area (where start/end fields are)
+                const searchContainer = document.querySelector('.search-container');
+                const searchRect = searchContainer ? searchContainer.getBoundingClientRect() : null;
+                
+                // Allow reload only in search area or top header area
+                const isInSearchArea = searchRect && 
+                                     touchX >= searchRect.left && 
+                                     touchX <= searchRect.right && 
+                                     touchY >= searchRect.top && 
+                                     touchY <= searchRect.bottom;
+                
+                const isInTopArea = touchY < 120; // Top 120px area for header
+                
+                if (!(isInSearchArea || isInTopArea)) {
+                    isAtTop = false; // Disable reload if not in allowed areas
+                    return;
+                }
+                
+                touchStartY = touchY;
+                // Check if we're at the top of the page and in allowed area
+                isAtTop = window.scrollY === 0;
+            }, { passive: true });
+            
+            // Track touch move for visual feedback
+            document.addEventListener('touchmove', function(e) {
+                if (!isAtTop) return;
+                
+                const currentY = e.touches[0].clientY;
+                const deltaY = currentY - touchStartY;
+                
+                // Show reload indicator when pulling down
+                if (deltaY > 50) {
+                    showReloadIndicator();
+                } else {
+                    hideReloadIndicator();
+                }
+            }, { passive: true });
+            
+            // Handle touch end
+            document.addEventListener('touchend', function(e) {
+                if (!isAtTop) return;
+                
+                touchEndY = e.changedTouches[0].clientY;
+                const deltaY = touchEndY - touchStartY;
+                
+                // Reload if swipe down distance is greater than 80px (reduced threshold)
+                if (deltaY > 80) {
+                    hideReloadIndicator();
+                    // Add a small delay for better UX
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 200);
+                } else {
+                    hideReloadIndicator();
+                }
+            }, { passive: true });
+            
+            // Time slot change handler
+            document.getElementById('timeSlot').addEventListener('change', function() {
+                const selectedTimeSlot = this.value;
+                // Use client-side time detection if "Current Time" is selected
+                const timeSlotToUse = selectedTimeSlot || getCurrentTimeSlotClient();
+                loadStationMarkers(timeSlotToUse);
+            });
+            
+
+            
+
+        });
+     </script>
+</body>
+</html> 
