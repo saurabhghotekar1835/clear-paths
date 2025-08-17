@@ -16,6 +16,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
+from config import settings
 
 # Initialize FastAPI app
 app = FastAPI(title="Air Quality Routing API", description="API for finding routes with minimal air pollution exposure")
@@ -23,7 +24,7 @@ app = FastAPI(title="Air Quality Routing API", description="API for finding rout
 # Add CORS middleware to allow frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,9 +37,9 @@ node_coordinates = {}
 aqi_data = None
 aqi_cache = {}  # Cache for AQI interpolation results
 
-# Graph persistence file
-GRAPH_CACHE_FILE = "road_graph_cache.pkl"
-GRAPH_METADATA_FILE = "graph_metadata.json"
+# Graph persistence files
+GRAPH_CACHE_FILE = settings.GRAPH_CACHE_FILE
+GRAPH_METADATA_FILE = settings.GRAPH_METADATA_FILE
 
 class RouteRequest(BaseModel):
     start_lat: float
