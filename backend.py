@@ -224,10 +224,12 @@ def build_graph():
     aqi_cache.clear()
     print("🧹 Cleared AQI cache for fresh interpolation...")
     
-    road_graph = nx.Graph()
+    road_graph = nx.DiGraph()  # Use directed graph for one-way road support
     total_nodes = 0
     total_edges = 0
     total_coordinates = 0
+    oneway_roads = 0
+    bidirectional_roads = 0
     
     # Progress tracking
     progress_interval = max(1, len(road_data) // 20)  # Show progress every 5%
@@ -242,6 +244,15 @@ def build_graph():
         coordinates = road['coordinates']
         total_coordinates += len(coordinates)
         
+        # Determine road direction based on road type and name patterns (once per road)
+        is_oneway = determine_road_direction(road['road_name'], road['road_type'])
+        
+        # Track road types
+        if is_oneway:
+            oneway_roads += 1
+        else:
+            bidirectional_roads += 1
+        
         # Create nodes for ALL coordinate points in this road
         road_nodes = []
         for i, coord in enumerate(coordinates):
@@ -252,7 +263,7 @@ def build_graph():
             # Store node coordinates for later use
             node_coordinates[node_id] = (lat, lon)
         
-        # Connect consecutive nodes in the road
+        # Connect consecutive nodes in the road with directional support
         for i in range(len(road_nodes) - 1):
             current_node = road_nodes[i]
             next_node = road_nodes[i + 1]
@@ -266,17 +277,30 @@ def build_graph():
             mid_lat = (lat1 + lat2) / 2
             mid_lon = (lon1 + lon2) / 2
             
-            # Add edge with basic attributes for real-time AQI calculation
+            # Add forward edge (always present)
             road_graph.add_edge(
                 current_node, 
                 next_node,
                 distance=segment_distance,
                 road_id=road['road_id'],
                 road_name=road['road_name'],
-                coordinates=[coordinates[i], coordinates[i + 1]]
+                coordinates=[coordinates[i], coordinates[i + 1]],
+                direction='forward'
             )
-            
             total_edges += 1
+            
+            # Add reverse edge only if road is bidirectional
+            if not is_oneway:
+                road_graph.add_edge(
+                    next_node,
+                    current_node, 
+                    distance=segment_distance,
+                    road_id=road['road_id'],
+                    road_name=road['road_name'],
+                    coordinates=[coordinates[i + 1], coordinates[i]],  # Reversed coordinates
+                    direction='reverse'
+                )
+                total_edges += 1
         
         total_nodes = len(road_graph.nodes)
     
@@ -284,9 +308,46 @@ def build_graph():
     print(f"📊 Final stats: {road_graph.number_of_nodes():,} nodes and {road_graph.number_of_edges():,} edges")
     print(f"📈 Total coordinates processed: {total_coordinates:,}")
     print(f"🔄 Node deduplication: {total_coordinates:,} coordinates → {road_graph.number_of_nodes():,} unique nodes")
-    print(f"🚀 Graph built with real-time AQI integration - ready for fast routing!")
+    print(f"🛣️ Road direction analysis: {oneway_roads:,} one-way roads, {bidirectional_roads:,} bidirectional roads")
+    print(f"🚀 Graph built with directional support and real-time AQI integration - ready for realistic routing!")
     print(f"💾 AQI cache size: {len(aqi_cache)} interpolated values")
 
+
+
+def determine_road_direction(road_name: str, road_type: str) -> bool:
+    """Determine if a road is one-way based on name patterns and road type."""
+    
+    # Convert to lowercase for pattern matching
+    name_lower = road_name.lower()
+    type_lower = road_type.lower()
+    
+    # One-way indicators in road names
+    oneway_patterns = [
+        'underpass', 'overpass', 'flyover', 'ramp', 'slip road',
+        'service road', 'link road', 'connector', 'approach',
+        'exit', 'entry', 'loop', 'roundabout', 'circle'
+    ]
+    
+    # Check for one-way patterns in name
+    for pattern in oneway_patterns:
+        if pattern in name_lower:
+            return True
+    
+    # Road types that are typically one-way
+    oneway_types = [
+        'motorway_link', 'trunk_link', 'primary_link', 'secondary_link',
+        'ramp', 'slip_road', 'service', 'track'
+    ]
+    
+    if type_lower in oneway_types:
+        return True
+    
+    # Major highways and expressways often have divided lanes (treat as one-way per direction)
+    if type_lower in ['motorway', 'trunk'] and any(word in name_lower for word in ['expressway', 'highway', 'freeway']):
+        return True
+    
+    # Default to bidirectional
+    return False
 
 
 def load_aqi_data():
