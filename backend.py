@@ -315,38 +315,49 @@ def build_graph():
 
 
 def determine_road_direction(road_name: str, road_type: str) -> bool:
-    """Determine if a road is one-way based on name patterns and road type."""
+    """Determine if a road is one-way based on name patterns and road type.
+    
+    For Indian road conditions, we consider:
+    - Infrastructure: flyovers, underpasses, ramps
+    - Major divided roads: trunk, primary, secondary (often have divided carriageways)
+    - Service roads and links
+    """
     
     # Convert to lowercase for pattern matching
     name_lower = road_name.lower()
     type_lower = road_type.lower()
     
-    # One-way indicators in road names
-    oneway_patterns = [
+    # Strong one-way indicators in road names
+    strong_oneway_patterns = [
         'underpass', 'overpass', 'flyover', 'ramp', 'slip road',
         'service road', 'link road', 'connector', 'approach',
-        'exit', 'entry', 'loop', 'roundabout', 'circle'
+        'exit', 'entry', 'loop', 'roundabout', 'circle', 'bridge'
     ]
     
-    # Check for one-way patterns in name
-    for pattern in oneway_patterns:
+    # Check for strong one-way patterns in name
+    for pattern in strong_oneway_patterns:
         if pattern in name_lower:
             return True
     
-    # Road types that are typically one-way
+    # Road types that are typically one-way or have divided carriageways
     oneway_types = [
-        'motorway_link', 'trunk_link', 'primary_link', 'secondary_link',
-        'ramp', 'slip_road', 'service', 'track'
+        'motorway', 'motorway_link', 'trunk_link', 'primary_link', 
+        'secondary_link', 'ramp', 'slip_road', 'service'
     ]
     
     if type_lower in oneway_types:
         return True
     
-    # Major highways and expressways often have divided lanes (treat as one-way per direction)
-    if type_lower in ['motorway', 'trunk'] and any(word in name_lower for word in ['expressway', 'highway', 'freeway']):
+    # Major roads (trunk, primary) are often divided in urban areas like Gurugram
+    # Treat them as one-way per direction for more realistic routing
+    if type_lower in ['trunk', 'primary']:
         return True
     
-    # Default to bidirectional
+    # Secondary roads with highway-like names are often divided
+    if type_lower == 'secondary' and any(word in name_lower for word in ['road', 'marg', 'highway', 'expressway']):
+        return True
+    
+    # Default to bidirectional for residential, tertiary, unclassified roads
     return False
 
 
@@ -763,6 +774,25 @@ async def get_road_segments():
         })
     
     return {"segments": segments}
+
+@app.get("/road-network")
+async def get_road_network():
+    """Get the complete road network as GeoJSON for map display."""
+    import json
+    import os
+    
+    geojson_file = "gurugram_roads_real.geojson"
+    
+    if not os.path.exists(geojson_file):
+        raise HTTPException(status_code=404, detail="Road network GeoJSON file not found")
+    
+    try:
+        with open(geojson_file, 'r', encoding='utf-8') as f:
+            geojson_data = json.load(f)
+        
+        return geojson_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading road network: {str(e)}")
 
 @app.get("/stations")
 async def get_stations(time_slot: str = None):

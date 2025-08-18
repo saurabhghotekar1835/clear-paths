@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Clear button + Coverage area + Dotted connector lines + Dynamic loading text + Centered map + Road Network Display FIXED + Stations above roads + Performance optimized + Mobile hidden Roads button + No disappearing roads + Route info box reusability FIXED + Time selector matched to search fields + Roads button repositioned + Button text updated + Unified top controls layout + Equal spacing full width + Centered search fields + Logo centered between zoom and search + Logo container optimized - Updated at Mon Aug 18 19:05:00 IST 2025 -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -30,15 +31,23 @@
             z-index: 1;
         }
         
-        /* Google Maps style search container */
-        .search-container {
-             position: absolute;
+        /* Unified top controls container - desktop only */
+        .top-controls-container {
+            position: absolute;
             top: 20px;
             left: 20px;
             right: 20px;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: calc(100% - 40px); /* Full width minus left/right margins */
+        }
+
+        /* Google Maps style search container centered */
+        .search-container {
             max-width: 600px;
-            margin: 0 auto;
+            width: 100%;
         }
         
         .search-card {
@@ -225,12 +234,10 @@
             background: #3367d6;
         }
         
-        /* Time slot selector */
+        /* Time slot selector positioned absolutely on right */
         .time-container {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+            right: 0;
         }
         
 
@@ -238,13 +245,71 @@
         .time-select {
             background: white;
             border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
+            border-radius: 12px;
+            padding: 13px 20px;
             font-size: 14px;
             color: #333;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             cursor: pointer;
             outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .time-select:hover {
+            box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        }
+        
+        /* Roads button positioned absolutely on right */
+        .roads-btn-container {
+            position: absolute;
+            right: 180px;
+        }
+        
+        .roads-btn {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            padding: 13px 20px;
+            font-size: 14px;
+            color: #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .roads-btn:hover {
+            box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        }
+        
+        .roads-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        /* App logo positioned exactly between zoom buttons and search fields */
+        .logo-container {
+            position: absolute;
+            left: 150px; /* Positioned between zoom buttons and search fields */
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 4px 8px; /* Reduced padding between logo and container */
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            min-width: 150px; /* Increased container length */
+            justify-content: center;
+        }
+        
+        .logo-container:hover {
+            box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        }
+        
+        .app-logo {
+            height: 35px; /* Increased by 7% more from 33px */
+            width: auto;
+            display: block;
         }
         
         /* Loading overlay */
@@ -506,8 +571,80 @@
                 display: none !important;
             }
             
-            /* Hide clear button on mobile devices */
+            /* Show clear button on mobile devices - positioned below zoom buttons with same style */
             #clearBtn {
+                display: block !important;
+                position: fixed !important;
+                top: 160px !important;
+                left: 20px !important;
+                right: auto !important;
+                bottom: auto !important;
+                z-index: 1000 !important;
+                width: 33px !important;
+                height: 33px !important;
+                border-radius: 4px !important;
+                background: #fff !important;
+                border: 2px solid rgba(0,0,0,0.3) !important;
+                box-shadow: 0 1px 5px rgba(0,0,0,0.4) !important;
+                font-size: 18px !important;
+                font-weight: bold !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                color: #333 !important;
+                cursor: pointer !important;
+            }
+            
+            /* Change button text to just a cross on mobile */
+            #clearBtn::before {
+                content: "×" !important;
+            }
+            
+            /* Hide the original button text on mobile */
+            #clearBtn {
+                font-size: 0 !important;
+            }
+            
+            #clearBtn::before {
+                font-size: 20px !important;
+            }
+            
+            /* Hide desktop-only elements on mobile */
+            .desktop-only {
+                display: none !important;
+            }
+            
+            /* Ensure time container is visible on mobile */
+            .time-container {
+                display: block !important;
+            }
+            
+            /* Mobile: Revert to individual positioning */
+            .top-controls-container {
+                display: block !important;
+                position: static !important;
+            }
+            
+            .search-container {
+                position: absolute !important;
+                top: 20px !important;
+                left: 20px !important;
+                right: 20px !important;
+                z-index: 1000 !important;
+                max-width: none !important;
+                flex: none !important;
+                margin: 0 !important;
+            }
+            
+            .logo-container {
+                display: none !important;
+            }
+            
+            .roads-btn-container {
+                display: none !important;
+            }
+            
+            /* Hide time container from top area on mobile - it's repositioned below */
+            .top-controls-container .time-container {
                 display: none !important;
             }
             
@@ -524,21 +661,67 @@
         
         /* Responsive */
         @media (max-width: 767px) {
-            .search-container {
+            .logo-container {
                 left: 10px;
-                right: 10px;
-                top: 10px;
-                max-width: none;
+                padding: 10px 12px; /* Slightly smaller padding on mobile */
             }
             
-            /* Mobile: Move time selector above buttons, centered */
-            .time-container {
-                position: absolute;
-                bottom: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                right: auto;
-                top: auto;
+            .app-logo {
+                height: 18px; /* Slightly smaller on mobile */
+            }
+            
+            .search-container {
+                left: 10px !important; /* Start from left edge since logo is hidden */
+                right: 10px !important;
+                top: 10px;
+                max-width: none !important;
+                width: calc(100% - 20px) !important; /* Ensure full width minus margins */
+            }
+            
+            .search-input {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                padding: 13px 20px 13px 40px !important;
+            }
+            
+            /* Mobile: Move time selector above buttons, centered - FORCE VISIBLE */
+            .time-container,
+            .time-container.time-container,
+            div.time-container {
+                display: block !important; /* Ensure it's visible on mobile */
+                visibility: visible !important;
+                opacity: 1 !important;
+                position: fixed !important; /* Use fixed instead of absolute */
+                bottom: 90px !important; /* Above the route finding buttons */
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                top: auto !important;
+                z-index: 500 !important; /* Below station info panels */
+                width: auto !important;
+                height: auto !important;
+                background: transparent !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                width: auto !important;
+                max-width: 200px !important;
+                text-align: center !important;
+            }
+            
+            /* Also force the select element to be visible */
+            .time-container .time-select,
+            .time-container select {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                padding-right: 5px !important;
+                text-align: center !important;
+                text-align-last: center !important;
+                margin: 0 auto !important;
+                width: auto !important;
             }
             
             .time-select {
@@ -599,6 +782,48 @@
                 text-align: center;
                 margin-bottom: 8px;
             }
+            
+            /* Mobile station info styling */
+            .station-info {
+                position: fixed !important;
+                bottom: 80px !important;
+                left: 20px !important;
+                right: 20px !important;
+                width: auto !important;
+                max-width: none !important;
+                height: auto !important;
+                padding: 15px !important;
+                border-radius: 12px !important;
+            }
+            
+            /* Compact layout for mobile - arrange values in one line */
+            .station-info .station-values {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+                justify-content: space-between !important;
+                margin-top: 10px !important;
+            }
+            
+            .station-info .value-item {
+                flex: 1 !important;
+                min-width: 60px !important;
+                text-align: center !important;
+                font-size: 12px !important;
+            }
+            
+            .station-info .value-item .label {
+                display: block !important;
+                font-size: 10px !important;
+                color: #666 !important;
+                margin-bottom: 2px !important;
+            }
+            
+            .station-info .value-item .value {
+                display: block !important;
+                font-weight: bold !important;
+                font-size: 12px !important;
+            }
         }
         
         /* Route info tooltip */
@@ -615,52 +840,69 @@
             margin: 8px 12px !important;
             line-height: 1.4 !important;
          }
+         
+        
     </style>
 </head>
 <body>
     <!-- Map -->
     <div id="map"></div>
     
-    <!-- Search Container -->
-    <div class="search-container">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <!-- Start Point Box -->
-            <div class="search-card" style="flex: 1;">
-                <div style="position: relative;">
-                    <div class="location-indicator" id="startIndicator" style="display: none;"></div>
-                    <input type="text" class="search-input" id="startAddress" placeholder="Choose starting point">
-                    <div class="search-results" id="startAddressResults"></div>
-                 </div>
-            </div>
-            
-            <!-- To Indicator -->
-            <div class="to-indicator">To</div>
-            
-            <!-- End Point Box -->
-            <div class="search-card" style="flex: 1;">
-                <div style="position: relative;">
-                    <div class="location-indicator end" id="endIndicator" style="display: none;"></div>
-                    <input type="text" class="search-input" id="endAddress" placeholder="Choose destination">
-                    <div class="search-results" id="endAddressResults"></div>
+    <!-- Unified Top Controls Container -->
+    <div class="top-controls-container">
+        <!-- App Logo -->
+        <div class="logo-container">
+            <img src="logo.png" alt="Clear Skies" class="app-logo">
+        </div>
+
+        <!-- Search Container -->
+        <div class="search-container">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <!-- Start Point Box -->
+                <div class="search-card" style="flex: 1;">
+                    <div style="position: relative;">
+                        <div class="location-indicator" id="startIndicator" style="display: none;"></div>
+                        <input type="text" class="search-input" id="startAddress" placeholder="Choose starting point">
+                        <div class="search-results" id="startAddressResults"></div>
+                     </div>
+                </div>
+                
+                <!-- To Indicator -->
+                <div class="to-indicator">To</div>
+                
+                <!-- End Point Box -->
+                <div class="search-card" style="flex: 1;">
+                    <div style="position: relative;">
+                        <div class="location-indicator end" id="endIndicator" style="display: none;"></div>
+                        <input type="text" class="search-input" id="endAddress" placeholder="Choose destination">
+                        <div class="search-results" id="endAddressResults"></div>
+                                </div>
                             </div>
-                        </div>
+                                </div>
                             </div>
-                        </div>
-                    
-    <!-- Time Selector -->
-    <div class="time-container">
-        <select class="time-select" id="timeSlot">
-            <option value="">Current Time</option>
-            <option value="00:00-02:59">12-3 AM</option>
-            <option value="03:00-05:59">3-6 AM</option>
-            <option value="06:00-08:59">6-9 AM</option>
-            <option value="09:00-11:59">9 AM-12 PM</option>
-            <option value="12:00-14:59">12-3 PM</option>
-            <option value="15:00-17:59">3-6 PM</option>
-            <option value="18:00-20:59">6-9 PM</option>
-            <option value="21:00-23:59">9 PM-12 AM</option>
-        </select>
-                    </div>
+                        
+        <!-- Roads Button -->
+        <div class="roads-btn-container desktop-only">
+            <button class="roads-btn" id="showRoadNetworkBtn">
+                🛣️ Show Roads
+            </button>
+        </div>
+
+        <!-- Time Selector -->
+        <div class="time-container">
+            <select class="time-select" id="timeSlot">
+                <option value="">Current Time</option>
+                <option value="00:00-02:59">12-3 AM</option>
+                <option value="03:00-05:59">3-6 AM</option>
+                <option value="06:00-08:59">6-9 AM</option>
+                <option value="09:00-11:59">9 AM-12 PM</option>
+                <option value="12:00-14:59">12-3 PM</option>
+                <option value="15:00-17:59">3-6 PM</option>
+                <option value="18:00-20:59">6-9 PM</option>
+                <option value="21:00-23:59">9 PM-12 AM</option>
+            </select>
+        </div>
+    </div>
                     
     <!-- Controls -->
     <!-- Route Info Panel -->
@@ -693,7 +935,7 @@
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Finding clean route...</div>
+        <div class="loading-text" id="loadingText">Finding clean route...</div>
                  </div>
                 
     <!-- Hidden coordinate inputs for backend compatibility -->
@@ -722,11 +964,172 @@
         let selectedStartLocation = null;
         let selectedEndLocation = null;
         
+        // Road network coverage area
+        let roadNetworkCoverageLayer = null;
+        
+        // Road network display
+        let roadNetworkLayer = null;
+        let roadNetworkVisible = false;
+        
+        // Add road network coverage area display (without disclaimer tooltip)
+        function addRoadNetworkCoverage() {
+            // Define the coverage area for Gurugram road network
+            // These coordinates are extracted from the actual gurugram_roads_real.geojson data
+            const coverageBounds = [
+                [28.350003, 76.850001], // Southwest corner
+                [28.549998, 77.149997]  // Northeast corner
+            ];
+            
+            // Create a red rectangle to show the coverage area
+            roadNetworkCoverageLayer = L.rectangle(coverageBounds, {
+                color: '#ff4444',
+                weight: 2,
+                fillColor: '#ff4444',
+                fillOpacity: 0.1,
+                dashArray: '5, 5'
+            }).addTo(map);
+            
+            // No tooltip - just the visual coverage area
+            console.log('✅ Road network coverage area displayed (visual only, no tooltip)');
+        }
+        
+        // Toggle road network display
+        async function toggleRoadNetwork() {
+            const button = document.getElementById('showRoadNetworkBtn');
+            
+            if (roadNetworkVisible) {
+                // Hide road network
+                if (roadNetworkLayer) {
+                    // Remove simplified event listeners
+                    map.off('zoomstart movestart');
+                    map.off('zoomend moveend');
+                    
+                    map.removeLayer(roadNetworkLayer);
+                    roadNetworkLayer = null;
+                }
+                roadNetworkVisible = false;
+                button.textContent = '🛣️ Show Roads';
+                button.classList.remove('active');
+                console.log('✅ Road network hidden');
+            } else {
+                // Show road network
+                button.textContent = '⏳ Loading...';
+                button.disabled = true;
+                
+                try {
+                    await loadAndDisplayRoadNetwork();
+                    roadNetworkVisible = true;
+                    button.textContent = '🛣️ Hide Roads';
+                    button.classList.add('active');
+                    console.log('✅ Road network displayed');
+                } catch (error) {
+                    console.error('❌ Error loading road network:', error);
+                    alert('Error loading road network. Please try again.');
+                    button.textContent = '🛣️ Show Roads';
+                } finally {
+                    button.disabled = false;
+                }
+            }
+        }
+        
+        // Load and display road network from GeoJSON
+        async function loadAndDisplayRoadNetwork() {
+            if (roadNetworkLayer) {
+                return; // Already loaded
+            }
+            
+            try {
+                // Create a custom pane for road network (below markers)
+                if (!map.getPane('roadNetworkPane')) {
+                    map.createPane('roadNetworkPane');
+                    const pane = map.getPane('roadNetworkPane');
+                    pane.style.zIndex = 200; // Below markers (400) but above tiles (100)
+                    pane.style.pointerEvents = 'none'; // Improve performance during interactions
+                    pane.style.willChange = 'opacity'; // Optimize for opacity changes
+                    pane.style.backfaceVisibility = 'hidden'; // Optimize rendering
+                }
+                
+                // Fetch the GeoJSON data from backend
+                const response = await fetch('http://192.168.1.13:8000/road-network');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const roadData = await response.json();
+                
+                // Create the road network layer with maximum performance optimizations
+                roadNetworkLayer = L.geoJSON(roadData, {
+                    style: {
+                        color: '#4CAF50',        // Green color
+                        weight: 1,               // Thin lines for performance
+                        opacity: 0.4,            // Reduced opacity
+                        fillOpacity: 0,          // No fill
+                        smoothFactor: 2.0,       // More aggressive simplification for performance
+                        noClip: false            // Enable clipping for better performance
+                    },
+                    // Maximum performance optimizations
+                    interactive: false,
+                    bubblingMouseEvents: false,
+                    // Use custom pane so stations appear above
+                    pane: 'roadNetworkPane',
+                    // Additional performance optimizations
+                    pmIgnore: true,           // Ignore for editing plugins
+                    attribution: null,        // No attribution needed
+                    // Performance: Filter out very small road segments
+                    filter: function(feature, layer) {
+                        if (feature.geometry && feature.geometry.coordinates) {
+                            const coords = feature.geometry.coordinates;
+                            if (coords.length < 2) return false; // Skip single points
+                            // Skip very short segments for performance
+                            if (coords.length === 2) {
+                                const dx = coords[1][0] - coords[0][0];
+                                const dy = coords[1][1] - coords[0][1];
+                                const length = Math.sqrt(dx*dx + dy*dy);
+                                return length > 0.0001; // Skip very short segments
+                            }
+                        }
+                        return true;
+                    }
+                });
+                
+                // Add to map
+                roadNetworkLayer.addTo(map);
+                
+                // Add subtle event listeners for smooth interactions without disappearing
+                let interactionTimeout;
+                
+                map.on('zoomstart movestart', function() {
+                    if (roadNetworkLayer && map.hasLayer(roadNetworkLayer)) {
+                        const pane = roadNetworkLayer.getPane();
+                        pane.style.transition = 'opacity 0.15s ease';
+                        pane.style.opacity = '0.6'; // Keep visible but slightly faded
+                    }
+                });
+                
+                map.on('zoomend moveend', function() {
+                    clearTimeout(interactionTimeout);
+                    interactionTimeout = setTimeout(function() {
+                        if (roadNetworkLayer && map.hasLayer(roadNetworkLayer)) {
+                            const pane = roadNetworkLayer.getPane();
+                            pane.style.transition = 'opacity 0.3s ease';
+                            pane.style.opacity = '1'; // Restore full opacity
+                        }
+                    }, 100); // Small delay to avoid flickering
+                });
+                
+                console.log('✅ Road network layer added with performance optimizations');
+                
+            } catch (error) {
+                console.error('Error loading road network:', error);
+                throw error;
+            }
+        }
+        
         // Initialize map
         function initMap() {
             map = L.map('map', {
                 zoomControl: false
-            }).setView([28.4595, 77.0266], 12);
+            }).setView([28.450001, 76.999999], 12);
             
             // Add zoom control to top left
             L.control.zoom({
@@ -736,6 +1139,9 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
+            
+            // Add road network coverage area display (without tooltip)
+            addRoadNetworkCoverage();
             
             // Setup map click handlers
             setupMapClickHandlers();
@@ -788,6 +1194,34 @@
                 searchTimeout = setTimeout(() => {
                     searchAddress(query, 'endAddressResults', 'end');
                 }, 300);
+            });
+            
+            // Add focus handlers to hide other dropdowns when switching fields
+            startAddressInput.addEventListener('focus', function() {
+                hideSearchResults('endAddressResults');
+            });
+            
+            endAddressInput.addEventListener('focus', function() {
+                hideSearchResults('startAddressResults');
+            });
+            
+            // Add blur handlers to hide dropdowns when losing focus
+            startAddressInput.addEventListener('blur', function(e) {
+                // Delay hiding to allow click on dropdown items
+                setTimeout(() => {
+                    if (!document.querySelector('#startAddressResults:hover')) {
+                        hideSearchResults('startAddressResults');
+                    }
+                }, 150);
+            });
+            
+            endAddressInput.addEventListener('blur', function(e) {
+                // Delay hiding to allow click on dropdown items
+                setTimeout(() => {
+                    if (!document.querySelector('#endAddressResults:hover')) {
+                        hideSearchResults('endAddressResults');
+                    }
+                }, 150);
             });
             
             // Hide search results when clicking outside
@@ -888,7 +1322,9 @@
                 
                 item.addEventListener('click', function() {
                     selectLocation(result, type);
-                    hideSearchResults(resultsElementId);
+                    // Hide both dropdowns when selection is made
+                    hideSearchResults('startAddressResults');
+                    hideSearchResults('endAddressResults');
                 });
                 
                 resultsContainer.appendChild(item);
@@ -1099,6 +1535,15 @@
         
         async function findRoute(startLat, startLon, endLat, endLon, routeType) {
             const loadingOverlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            
+            // Update loading text based on route type
+            if (routeType === 'optimal') {
+                loadingText.textContent = 'Finding clean route...';
+            } else if (routeType === 'distance') {
+                loadingText.textContent = 'Finding fast route...';
+            }
+            
             loadingOverlay.style.display = 'flex';
             
             try {
@@ -1142,7 +1587,7 @@
                 }
                 
                 const data = await response.json();
-                displayRoute(data, routeType);
+                displayRoute(data, routeType, startLat, startLon, endLat, endLon);
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -1163,7 +1608,62 @@
             }
         }
         
-        function displayRoute(data, routeType) {
+        // Global variables to store connector lines for clearing
+        let startConnectorLines = [];
+        let endConnectorLines = [];
+        
+        // Add dotted connector lines from actual start/end points to route start/end
+        function addConnectorLines(startLat, startLon, endLat, endLon, routeCoords, routeColor, routeType) {
+            if (!routeCoords || routeCoords.length === 0) return;
+            
+            const actualStart = [parseFloat(startLat), parseFloat(startLon)];
+            const actualEnd = [parseFloat(endLat), parseFloat(endLon)];
+            const routeStart = routeCoords[0];
+            const routeEnd = routeCoords[routeCoords.length - 1];
+            
+            // Calculate distances to determine if connector lines are needed
+            const startDistance = getDistance(actualStart[0], actualStart[1], routeStart[0], routeStart[1]);
+            const endDistance = getDistance(actualEnd[0], actualEnd[1], routeEnd[0], routeEnd[1]);
+            
+            // Only show connector lines if distance is significant (> 50 meters)
+            const minDistanceKm = 0.05; // 50 meters
+            
+            // Connector line style - dotted
+            const connectorStyle = {
+                color: routeColor,
+                weight: 2,
+                opacity: 0.7,
+                dashArray: '5, 10' // Dotted pattern
+            };
+            
+            // Add start connector line if needed
+            if (startDistance > minDistanceKm) {
+                const startConnector = L.polyline([actualStart, routeStart], connectorStyle).addTo(map);
+                startConnectorLines.push(startConnector);
+                console.log(`✅ Added start connector line: ${(startDistance * 1000).toFixed(0)}m`);
+            }
+            
+            // Add end connector line if needed  
+            if (endDistance > minDistanceKm) {
+                const endConnector = L.polyline([actualEnd, routeEnd], connectorStyle).addTo(map);
+                endConnectorLines.push(endConnector);
+                console.log(`✅ Added end connector line: ${(endDistance * 1000).toFixed(0)}m`);
+            }
+        }
+        
+        // Helper function to calculate distance between two points (Haversine formula)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distance in kilometers
+        }
+
+        function displayRoute(data, routeType, startLat, startLon, endLat, endLon) {
             // Remove existing route and border
             if (routeType === 'optimal') {
             if (optimalRouteLine) {
@@ -1254,6 +1754,9 @@
                 // Draw white border first, then colored route on top
                 const borderLine = L.polyline(offsetCoords, borderStyle).addTo(map);
                 const routeLine = L.polyline(offsetCoords, routeStyle).addTo(map);
+                
+                // Add dotted connector lines from actual start/end points to route endpoints
+                addConnectorLines(startLat, startLon, endLat, endLon, routeCoords, routeColor, routeType);
                 
                 // Add route info popup to the route line (only for mobile/small screens)
                 const distance = data.total_distance_km || data.total_distance || 0;
@@ -1375,7 +1878,13 @@
         }
         
         function hideRouteInfo() {
-            document.getElementById('routeInfo').style.display = 'none';
+            const routeInfoElement = document.getElementById('routeInfoPanel');
+            if (routeInfoElement) {
+                routeInfoElement.style.display = 'none';
+                console.log('✅ hideRouteInfo() - Route info panel hidden');
+            } else {
+                console.log('❌ hideRouteInfo() - routeInfoPanel element not found');
+            }
         }
         
         function updateRouteInfoPanel(routeType, distance, pollution, routeColor) {
@@ -1421,10 +1930,15 @@
             }
             
             content.innerHTML = html;
-            panel.style.display = 'block';
+            // Ensure panel can be shown (clear any previous !important styles)
+            panel.removeAttribute('style');
+            panel.style.cssText = 'display: block;';
+            console.log('✅ Route info panel shown with content:', html.length > 0 ? 'Content loaded' : 'No content');
         }
 
         function clearAll() {
+            console.log('🚨 CLEAR BUTTON ACTIVATED - Starting comprehensive clearing...');
+            
             // Remove markers
             if (startMarker) {
                 map.removeLayer(startMarker);
@@ -1481,9 +1995,99 @@
             hideRouteInfo();
             hideStationData();
             
-            // Hide route info panel
-            document.getElementById('routeInfoPanel').style.display = 'none';
+            // COMPREHENSIVE ROUTE INFO CLEARING - Both Mobile and Desktop
+            
+            // 1. Clear Desktop Route Info Panel - PROPER RESET (allows future display)
+            const routeInfoPanel = document.getElementById('routeInfoPanel');
+            const routeInfoContent = document.getElementById('routeInfoContent');
+            
+            if (routeInfoPanel) {
+                // Completely reset the panel to its initial state
+                routeInfoPanel.removeAttribute('style');
+                routeInfoPanel.className = routeInfoPanel.className; // Reset any class-based styles
+                // Set initial hidden state (normal CSS, not !important)
+                routeInfoPanel.style.cssText = 'display: none;';
+                console.log('✅ Desktop route info panel reset for future use');
+            } else {
+                console.log('❌ routeInfoPanel element not found!');
+            }
+            
+            if (routeInfoContent) {
+                routeInfoContent.innerHTML = '';
+                console.log('✅ Desktop route info content cleared');
+            } else {
+                console.log('❌ routeInfoContent element not found!');
+            }
+            
+            // 2. Clear Mobile Route Info Markers (already handled above, but double-check)
+            if (window.optimalRouteInfoMarker) {
+                map.removeLayer(window.optimalRouteInfoMarker);
+                window.optimalRouteInfoMarker = null;
+                console.log('✅ Mobile optimal route marker cleared');
+            }
+            if (window.distanceRouteInfoMarker) {
+                map.removeLayer(window.distanceRouteInfoMarker);
+                window.distanceRouteInfoMarker = null;
+                console.log('✅ Mobile distance route marker cleared');
+            }
+            
+            // Clear connector lines
+            startConnectorLines.forEach(line => {
+                if (map.hasLayer(line)) {
+                    map.removeLayer(line);
+                }
+            });
+            endConnectorLines.forEach(line => {
+                if (map.hasLayer(line)) {
+                    map.removeLayer(line);
+                }
+            });
+            startConnectorLines = [];
+            endConnectorLines = [];
+            console.log('✅ Connector lines cleared');
+            
+            // 3. Reset route data (SAFE RESET)
+            console.log('🗂️ Before clearing - window.routeData:', window.routeData);
             window.routeData = {};
+            console.log('🗂️ After clearing - window.routeData:', window.routeData);
+            
+            // 4. Clear only specific route info elements (SAFE CLEARING)
+            const routeInfoMarkers = document.querySelectorAll('.route-info-marker, .route-info-overlay');
+            console.log(`🔍 Found ${routeInfoMarkers.length} route info markers to clear`);
+            routeInfoMarkers.forEach((element, index) => {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                    console.log(`✅ Removed route marker ${index}:`, element.className);
+                }
+            });
+            
+            // 5. Detect screen size and log which system should be active
+            const isMobile = window.innerWidth < 768;
+            console.log(`📱 Screen width: ${window.innerWidth}px - ${isMobile ? 'Mobile' : 'Desktop'} mode`);
+            
+            // 6. Simple completion log
+                    // 7. Hide road network if visible
+        if (roadNetworkVisible) {
+            const roadNetworkBtn = document.getElementById('showRoadNetworkBtn');
+            if (roadNetworkLayer) {
+                // Remove simplified event listeners
+                map.off('zoomstart movestart');
+                map.off('zoomend moveend');
+                
+                map.removeLayer(roadNetworkLayer);
+                roadNetworkLayer = null;
+            }
+            roadNetworkVisible = false;
+            if (roadNetworkBtn) {
+                roadNetworkBtn.textContent = '🛣️ Show Roads';
+                roadNetworkBtn.classList.remove('active');
+            }
+            console.log('✅ Road network hidden during clear');
+        }
+        
+        console.log('✅ Route clearing completed successfully');
+        
+        console.log('🧹 COMPREHENSIVE route clearing completed - both mobile and desktop systems cleared');
             
             // Reset selection state
             isSelectingStart = false;
@@ -1678,74 +2282,112 @@
             const aqi = station.aqi || 0;
             const category = getAQICategory(aqi);
             const color = getAQIColor(aqi);
+            const isMobile = window.innerWidth <= 767;
             
             // Determine text color based on background color (black for yellow, white for others)
             const textColor = color === '#FFFF00' ? 'black' : 'white';
             
-            stationData.innerHTML = `
-                <h6 style="margin-bottom: 15px; color: #333;">${station.station_name}</h6>
-                <div style="background: ${color}; color: ${textColor}; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; max-width: 100%; box-sizing: border-box;">
-                    <div style="font-size: 24px; font-weight: bold;">${aqi}</div>
-                    <div style="font-size: 14px; opacity: 0.9;">${category}</div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                    <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
-                        <div style="font-size: 18px; font-weight: 600; color: #333;">${station.pm25?.toFixed(1) || 'N/A'}</div>
-                        <div style="font-size: 12px; color: #666;">PM2.5 µg/m³</div>
+            if (isMobile) {
+                // Mobile compact layout
+                stationData.innerHTML = `
+                    <h6 style="margin-bottom: 10px; color: #333; font-size: 14px;">${station.station_name}</h6>
+                    <div style="background: ${color}; color: ${textColor}; padding: 6px 8px; border-radius: 6px; margin-bottom: 10px; text-align: center;">
+                        <span style="font-size: 16px; font-weight: bold;">${aqi}</span><span style="font-size: 12px; font-weight: normal;"> (${category})</span>
                     </div>
-                    <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
-                        <div style="font-size: 18px; font-weight: 600; color: #333;">${station.pm10?.toFixed(1) || 'N/A'}</div>
-                        <div style="font-size: 12px; color: #666;">PM10 µg/m³</div>
+                    <div class="station-values">
+                        <div class="value-item">
+                            <span class="label">PM2.5</span>
+                            <span class="value">${station.pm25?.toFixed(1) || 'N/A'}</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="label">PM10</span>
+                            <span class="value">${station.pm10?.toFixed(1) || 'N/A'}</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="label">Temp</span>
+                            <span class="value">${station.temperature?.toFixed(1) || 'N/A'}°C</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="label">Humidity</span>
+                            <span class="value">${station.humidity?.toFixed(0) || 'N/A'}%</span>
+                        </div>
                     </div>
-                    <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
-                        <div style="font-size: 18px; font-weight: 600; color: #333;">${station.temperature?.toFixed(1) || 'N/A'}°C</div>
-                        <div style="font-size: 12px; color: #666;">Temperature</div>
+                    <div style="font-size: 10px; color: #666; text-align: center; margin-top: 8px;">
+                        ${getTimeSlotLabel(station.actual_time_slot || 'Current')} | ${station.latitude?.toFixed(4)}, ${station.longitude?.toFixed(4)}
                     </div>
-                    <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
-                        <div style="font-size: 18px; font-weight: 600; color: #333;">${station.humidity?.toFixed(0) || 'N/A'}%</div>
-                        <div style="font-size: 12px; color: #666;">Humidity</div>
+                `;
+            } else {
+                // Desktop layout (original)
+                stationData.innerHTML = `
+                    <h6 style="margin-bottom: 15px; color: #333;">${station.station_name}</h6>
+                    <div style="background: ${color}; color: ${textColor}; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; max-width: 100%; box-sizing: border-box;">
+                        <div style="font-size: 24px; font-weight: bold;">${aqi}</div>
+                        <div style="font-size: 14px; opacity: 0.9;">${category}</div>
                     </div>
-                </div>
-                <div style="font-size: 12px; color: #666; text-align: center;">
-                    Time: ${getTimeSlotLabel(station.actual_time_slot || 'Current')}<br>
-                    Location: ${station.latitude?.toFixed(4)}, ${station.longitude?.toFixed(4)}
-                </div>
-                
-                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                    <div onclick="toggleAQIScale()" style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                        <span>Air Quality Index Scale</span>
-                        <span id="aqiToggleIcon" style="font-size: 10px;">▼</span>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">${station.pm25?.toFixed(1) || 'N/A'}</div>
+                            <div style="font-size: 12px; color: #666;">PM2.5 µg/m³</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">${station.pm10?.toFixed(1) || 'N/A'}</div>
+                            <div style="font-size: 12px; color: #666;">PM10 µg/m³</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">${station.temperature?.toFixed(1) || 'N/A'}°C</div>
+                            <div style="font-size: 12px; color: #666;">Temperature</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">${station.humidity?.toFixed(0) || 'N/A'}%</div>
+                            <div style="font-size: 12px; color: #666;">Humidity</div>
+                        </div>
                     </div>
-                    <div id="aqiScaleContent" style="display: none;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <div style="width: 10px; height: 10px; background: #00E400; border-radius: 2px;"></div>
-                                <span>Good (0-50)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <div style="width: 10px; height: 10px; background: #FFFF00; border-radius: 2px;"></div>
-                                <span>Satisfactory (51-100)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <div style="width: 10px; height: 10px; background: #FF7E00; border-radius: 2px;"></div>
-                                <span>Moderate (101-200)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <div style="width: 10px; height: 10px; background: #FF0000; border-radius: 2px;"></div>
-                                <span>Poor (201-300)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <div style="width: 10px; height: 10px; background: #8F3F97; border-radius: 2px;"></div>
-                                <span>Very Poor (301-400)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <div style="width: 10px; height: 10px; background: #7E0023; border-radius: 2px;"></div>
-                                <span>Severe (>400)</span>
+                    <div style="font-size: 12px; color: #666; text-align: center;">
+                        Time: ${getTimeSlotLabel(station.actual_time_slot || 'Current')}<br>
+                        Location: ${station.latitude?.toFixed(4)}, ${station.longitude?.toFixed(4)}
+                    </div>
+                `;
+            }
+            
+            // Add AQI scale for both mobile and desktop (but only for desktop layout)
+            if (!isMobile) {
+                stationData.innerHTML += `
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                        <div onclick="toggleAQIScale()" style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <span>Air Quality Index Scale</span>
+                            <span id="aqiToggleIcon" style="font-size: 10px;">▼</span>
+                        </div>
+                        <div id="aqiScaleContent" style="display: none;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 10px; height: 10px; background: #00E400; border-radius: 2px;"></div>
+                                    <span>Good (0-50)</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 10px; height: 10px; background: #FFFF00; border-radius: 2px;"></div>
+                                    <span>Satisfactory (51-100)</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 10px; height: 10px; background: #FF7E00; border-radius: 2px;"></div>
+                                    <span>Moderate (101-200)</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 10px; height: 10px; background: #FF0000; border-radius: 2px;"></div>
+                                    <span>Poor (201-300)</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 10px; height: 10px; background: #8F3F97; border-radius: 2px;"></div>
+                                    <span>Very Poor (301-400)</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 10px; height: 10px; background: #7E0023; border-radius: 2px;"></div>
+                                    <span>Severe (>400)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
         
                         function displayBasicStationData(station) {
@@ -1753,20 +2395,35 @@
             const aqi = station.aqi || 0;
             const category = getAQICategory(aqi);
             const color = getAQIColor(aqi);
+            const isMobile = window.innerWidth <= 767;
             
             // Determine text color based on background color (black for yellow, white for others)
             const textColor = color === '#FFFF00' ? 'black' : 'white';
             
-            stationData.innerHTML = `
-                <h6 style="margin-bottom: 15px; color: #333;">${station.station_name}</h6>
-                <div style="background: ${color}; color: ${textColor}; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; max-width: 100%; box-sizing: border-box;">
-                    <div style="font-size: 24px; font-weight: bold;">${aqi}</div>
-                    <div style="font-size: 14px; opacity: 0.9;">${category}</div>
+            if (isMobile) {
+                // Mobile compact layout
+                stationData.innerHTML = `
+                    <h6 style="margin-bottom: 10px; color: #333; font-size: 14px;">${station.station_name}</h6>
+                    <div style="background: ${color}; color: ${textColor}; padding: 6px 8px; border-radius: 6px; margin-bottom: 10px; text-align: center;">
+                        <span style="font-size: 16px; font-weight: bold;">${aqi}</span><span style="font-size: 12px; font-weight: normal;"> (${category})</span>
                     </div>
-                <div style="text-align: center; color: #666; font-size: 14px;">
-                    Click on time slot to see detailed data
-                </div>
-            `;
+                    <div style="text-align: center; color: #666; font-size: 12px;">
+                        Tap time slot for details
+                    </div>
+                `;
+            } else {
+                // Desktop layout (original)
+                stationData.innerHTML = `
+                    <h6 style="margin-bottom: 15px; color: #333;">${station.station_name}</h6>
+                    <div style="background: ${color}; color: ${textColor}; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; max-width: 100%; box-sizing: border-box;">
+                        <div style="font-size: 24px; font-weight: bold;">${aqi}</div>
+                        <div style="font-size: 14px; opacity: 0.9;">${category}</div>
+                    </div>
+                    <div style="text-align: center; color: #666; font-size: 14px;">
+                        Click on time slot to see detailed data
+                    </div>
+                `;
+            }
         }
         
         function showReloadIndicator() {
@@ -1898,6 +2555,7 @@
             });
             
             document.getElementById('clearBtn').addEventListener('click', clearAll);
+        document.getElementById('showRoadNetworkBtn').addEventListener('click', toggleRoadNetwork);
             
 
             
