@@ -35,19 +35,27 @@
         .top-controls-container {
             position: absolute;
             top: 20px;
-            left: 20px;
-            right: 20px;
+            left: 0;
+            right: 0;
             z-index: 1000;
             display: flex;
             align-items: center;
-            justify-content: center;
-            width: calc(100% - 40px); /* Full width minus left/right margins */
+            justify-content: center; /* Center everything */
+            width: 100%;
+            pointer-events: none; /* Allow clicks through container */
+        }
+        
+        .top-controls-container > * {
+            pointer-events: auto; /* Re-enable clicks on child elements */
         }
 
         /* Google Maps style search container centered */
         .search-container {
             max-width: 600px;
-            width: 100%;
+            width: 600px;
+            position: relative;
+            display: flex;
+            align-items: center;
         }
         
         .search-card {
@@ -234,10 +242,10 @@
             background: #3367d6;
         }
         
-        /* Time slot selector positioned absolutely on right */
+        /* Time slot selector positioned in flexbox */
         .time-container {
-            position: absolute;
-            right: 0;
+            position: relative;
+            flex-shrink: 0; /* Prevent shrinking */
         }
         
 
@@ -259,10 +267,19 @@
             box-shadow: 0 6px 25px rgba(0,0,0,0.2);
         }
         
-        /* Roads button positioned absolutely on right */
-        .roads-btn-container {
+        /* Right controls container */
+        .right-controls {
             position: absolute;
-            right: 180px;
+            right: 20px;
+            top: 0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        /* Roads button positioned in flexbox */
+        .roads-btn-container {
+            position: relative;
         }
         
         .roads-btn {
@@ -287,19 +304,21 @@
             color: white;
         }
         
-        /* App logo positioned exactly between zoom buttons and search fields */
+        /* App logo positioned between zoom buttons and search fields */
         .logo-container {
-            position: absolute;
-            left: 150px; /* Positioned between zoom buttons and search fields */
+            position: fixed;
+            left: 150px; /* Positioned between zoom buttons (at ~80px) and search center */
+            top: 20px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            padding: 4px 8px; /* Reduced padding between logo and container */
+            padding: 4px 8px;
             display: flex;
             align-items: center;
             transition: all 0.2s ease;
-            min-width: 150px; /* Increased container length */
+            min-width: 150px;
             justify-content: center;
+            z-index: 1001; /* Above other elements */
         }
         
         .logo-container:hover {
@@ -848,16 +867,16 @@
     <!-- Map -->
     <div id="map"></div>
     
+    <!-- App Logo positioned between zoom and search -->
+    <div class="logo-container">
+        <img src="logo.png" alt="Clear Skies" class="app-logo">
+    </div>
+
     <!-- Unified Top Controls Container -->
     <div class="top-controls-container">
-        <!-- App Logo -->
-        <div class="logo-container">
-            <img src="logo.png" alt="Clear Skies" class="app-logo">
-        </div>
-
         <!-- Search Container -->
         <div class="search-container">
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="search-fields" style="display: flex; align-items: center; gap: 8px; max-width: 600px; width: 100%;">
                 <!-- Start Point Box -->
                 <div class="search-card" style="flex: 1;">
                     <div style="position: relative;">
@@ -876,31 +895,34 @@
                         <div class="location-indicator end" id="endIndicator" style="display: none;"></div>
                         <input type="text" class="search-input" id="endAddress" placeholder="Choose destination">
                         <div class="search-results" id="endAddressResults"></div>
-                                </div>
-                            </div>
-                                </div>
-                            </div>
-                        
-        <!-- Roads Button -->
-        <div class="roads-btn-container desktop-only">
-            <button class="roads-btn" id="showRoadNetworkBtn">
-                🛣️ Show Roads
-            </button>
+                    </div>
+                </div>
+            </div>
         </div>
+        
+        <!-- Right Controls -->
+        <div class="right-controls">
+            <!-- Roads Button -->
+            <div class="roads-btn-container desktop-only">
+                <button class="roads-btn" id="showRoadNetworkBtn">
+                    🛣️ Show Roads
+                </button>
+            </div>
 
-        <!-- Time Selector -->
-        <div class="time-container">
-            <select class="time-select" id="timeSlot">
-                <option value="">Current Time</option>
-                <option value="00:00-02:59">12-3 AM</option>
-                <option value="03:00-05:59">3-6 AM</option>
-                <option value="06:00-08:59">6-9 AM</option>
-                <option value="09:00-11:59">9 AM-12 PM</option>
-                <option value="12:00-14:59">12-3 PM</option>
-                <option value="15:00-17:59">3-6 PM</option>
-                <option value="18:00-20:59">6-9 PM</option>
-                <option value="21:00-23:59">9 PM-12 AM</option>
-            </select>
+            <!-- Time Selector -->
+            <div class="time-container">
+                <select class="time-select" id="timeSlot">
+                    <option value="">Current Time</option>
+                    <option value="00:00-02:59">12-3 AM</option>
+                    <option value="03:00-05:59">3-6 AM</option>
+                    <option value="06:00-08:59">6-9 AM</option>
+                    <option value="09:00-11:59">9 AM-12 PM</option>
+                    <option value="12:00-14:59">12-3 PM</option>
+                    <option value="15:00-17:59">3-6 PM</option>
+                    <option value="18:00-20:59">6-9 PM</option>
+                    <option value="21:00-23:59">9 PM-12 AM</option>
+                </select>
+            </div>
         </div>
     </div>
                     
