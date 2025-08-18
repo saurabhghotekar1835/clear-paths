@@ -1,0 +1,19 @@
+# Virtual environment (too large for GitHub)
+venv/
+
+# Temporary files
+*.tmp
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Keep our important cache files:
+# - __pycache__/ (Python bytecode cache)
+# - road_graph_cache.pkl (Graph cache)
+# - graph_metadata.json (Graph metadata) 

@@ -13,8 +13,8 @@ class Settings:
     # CORS Settings
     ALLOWED_ORIGINS: List[str] = os.getenv(
         "ALLOWED_ORIGINS", 
-        "http://localhost:3000,http://127.0.0.1:3000,https://clear-paths-frontend.onrender.com"
-    ).split(",")
+        "*"
+    ).split(",") if os.getenv("ALLOWED_ORIGINS") != "*" else ["*"]
     
     # File Paths
     GRAPH_CACHE_FILE: str = os.getenv("GRAPH_CACHE_FILE", "road_graph_cache.pkl")

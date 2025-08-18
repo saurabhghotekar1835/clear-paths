@@ -266,15 +266,11 @@ def build_graph():
             mid_lat = (lat1 + lat2) / 2
             mid_lon = (lon1 + lon2) / 2
             
-            # Calculate custom cost based on distance and interpolated AQI
-            cost = calculate_road_cost_with_aqi(segment_distance, mid_lat, mid_lon)
-            
-            # Add edge with attributes
+            # Add edge with basic attributes for real-time AQI calculation
             road_graph.add_edge(
                 current_node, 
                 next_node,
                 distance=segment_distance,
-                cost=cost,
                 road_id=road['road_id'],
                 road_name=road['road_name'],
                 coordinates=[coordinates[i], coordinates[i + 1]]
@@ -288,7 +284,7 @@ def build_graph():
     print(f"📊 Final stats: {road_graph.number_of_nodes():,} nodes and {road_graph.number_of_edges():,} edges")
     print(f"📈 Total coordinates processed: {total_coordinates:,}")
     print(f"🔄 Node deduplication: {total_coordinates:,} coordinates → {road_graph.number_of_nodes():,} unique nodes")
-    print(f"🌬️ Using ALL coordinate points with AQI integration!")
+    print(f"🚀 Graph built with real-time AQI integration - ready for fast routing!")
     print(f"💾 AQI cache size: {len(aqi_cache)} interpolated values")
 
 
@@ -305,14 +301,14 @@ def load_aqi_data():
         return False
 
 def interpolate_aqi_for_point(lat: float, lon: float, time_slot: str = "00:00-02:59") -> float:
-    """Interpolate AQI value for a road point with caching for performance."""
+    """Interpolate AQI value for a road point with aggressive caching and simplified calculation."""
     global aqi_data, aqi_cache
     
     if aqi_data is None:
         return 100.0  # Default moderate AQI
     
-    # Create cache key
-    cache_key = f"{lat:.4f}_{lon:.4f}_{time_slot}"
+    # Create cache key with reduced precision for better cache hits
+    cache_key = f"{lat:.3f}_{lon:.3f}_{time_slot}"
     
     # Check cache first
     if cache_key in aqi_cache:
@@ -322,67 +318,60 @@ def interpolate_aqi_for_point(lat: float, lon: float, time_slot: str = "00:00-02
     time_data = aqi_data[aqi_data['time_slot'] == time_slot].copy()
     
     if len(time_data) == 0:
-        return 100.0  # Default moderate AQI
-    
-    # Calculate distances
-    station_coords = time_data[['latitude', 'longitude']].values
-    road_coords = np.array([[lat, lon]])
-    distances = cdist(road_coords, station_coords, metric='euclidean') * 111  # Convert to km
-    distances = distances[0]
-    
-    # Find stations within 5km
-    valid_indices = distances <= 5.0
-    
-    if not any(valid_indices):
         result = 100.0  # Default moderate AQI
     else:
-        # Calculate inverse distance weighted AQI
-        total_weight = 0
-        weighted_sum = 0
+        # Simplified approach: find closest station within reasonable distance
+        station_coords = time_data[['latitude', 'longitude']].values
+        road_coords = np.array([[lat, lon]])
+        distances = cdist(road_coords, station_coords, metric='euclidean') * 111  # Convert to km
+        distances = distances[0]
         
-        for i, is_valid in enumerate(valid_indices):
-            if is_valid:
-                distance_km = distances[i]
-                aqi_value = time_data.iloc[i]['AQI']
-                
-                if distance_km == 0:
-                    result = aqi_value  # Exact match
-                    break
-                
-                weight = 1 / (distance_km ** 2)
-                total_weight += weight
-                weighted_sum += weight * aqi_value
+        # Find closest station within 10km
+        min_distance_idx = np.argmin(distances)
+        min_distance = distances[min_distance_idx]
         
-        if total_weight == 0:
-            result = 100.0  # Default moderate AQI
+        if min_distance <= 10.0:
+            # Use closest station's AQI with distance-based interpolation
+            closest_aqi = time_data.iloc[min_distance_idx]['AQI']
+            
+            # Find second closest for simple interpolation
+            second_closest_idx = np.argsort(distances)[1] if len(distances) > 1 else min_distance_idx
+            second_distance = distances[second_closest_idx]
+            
+            if second_distance <= 10.0 and len(distances) > 1:
+                second_aqi = time_data.iloc[second_closest_idx]['AQI']
+                # Simple weighted average of two closest stations
+                total_weight = (1/min_distance) + (1/second_distance)
+                result = ((closest_aqi/min_distance) + (second_aqi/second_distance)) / total_weight
+            else:
+                result = closest_aqi
         else:
-            result = round(weighted_sum / total_weight)
+            result = 100.0  # Default moderate AQI
     
     # Cache the result
-    aqi_cache[cache_key] = result
-    return result
+    aqi_cache[cache_key] = round(result)
+    return aqi_cache[cache_key]
 
 def calculate_road_cost_with_aqi(distance_km: float, road_lat: float, road_lon: float, 
                                 time_slot: str = "00:00-02:59") -> float:
-    """Calculate road cost using distance and interpolated AQI with extreme AQI penalty."""
+    """Calculate road cost using distance and interpolated AQI with balanced penalties for effective routing."""
     
     # Get interpolated AQI for this road point
     aqi_value = interpolate_aqi_for_point(road_lat, road_lon, time_slot)
     
-    # Extreme AQI weight factor (maximum penalty for high AQI)
-    # This forces the algorithm to absolutely avoid orange areas and prefer green/yellow
+    # Balanced AQI weight factor - stronger penalties to encourage cleaner routes
     if aqi_value <= 50:  # Good - No penalty
         aqi_weight = 1.0
-    elif aqi_value <= 100:  # Satisfactory - Very small penalty
-        aqi_weight = 2.0
-    elif aqi_value <= 200:  # Moderate - Extreme penalty
-        aqi_weight = 25.0  # Massive penalty for orange areas
-    elif aqi_value <= 300:  # Poor - Maximum penalty
-        aqi_weight = 200.0
-    elif aqi_value <= 400:  # Very Poor - Extreme penalty
-        aqi_weight = 500.0
-    else:  # Severe - Maximum penalty
-        aqi_weight = 1000.0
+    elif aqi_value <= 100:  # Satisfactory - Small penalty
+        aqi_weight = 1.5
+    elif aqi_value <= 150:  # Moderate - Moderate penalty
+        aqi_weight = 3.0
+    elif aqi_value <= 200:  # Unhealthy - Higher penalty
+        aqi_weight = 6.0
+    elif aqi_value <= 300:  # Very Unhealthy - High penalty
+        aqi_weight = 12.0
+    else:  # Hazardous - Maximum penalty
+        aqi_weight = 20.0
     
     # Calculate total cost
     cost = distance_km * aqi_weight
@@ -458,7 +447,7 @@ def dijkstra_route(start_lat: float, start_lon: float, end_lat: float, end_lon: 
     if start_node == end_node:
         return [start_node], 0.0, 0.0
     
-    # Define a custom weight function for dynamic cost calculation
+    # Define a weight function that calculates AQI cost dynamically with light penalties
     def dynamic_cost_weight(u, v, data):
         # Calculate midpoint of the edge
         lat1, lon1 = data['coordinates'][0][1], data['coordinates'][0][0]
@@ -466,10 +455,10 @@ def dijkstra_route(start_lat: float, start_lon: float, end_lat: float, end_lon: 
         mid_lat = (lat1 + lat2) / 2
         mid_lon = (lon1 + lon2) / 2
         
-        # Calculate dynamic cost for this time slot
+        # Calculate dynamic cost for this time slot using light penalties
         return calculate_road_cost_with_aqi(data['distance'], mid_lat, mid_lon, time_slot)
     
-    # Run Dijkstra's algorithm with dynamic cost function
+    # Run Dijkstra's algorithm with dynamic cost calculation
     try:
         shortest_path = nx.shortest_path(
             road_graph, 
